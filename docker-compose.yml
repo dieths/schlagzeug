@@ -30,7 +30,9 @@ services:
     command: tunnel --no-autoupdate run
     environment:
       - TUNNEL_TOKEN=${TUNNEL_TOKEN:-}
-    networks: [drum-notes]
+    # Teilt sich das Netzwerk mit der App: In Cloudflare als Service http://localhost:8080 eintragen.
+    # (Funktioniert auch, wenn die Host-Firewall Verkehr zwischen Containern blockiert.)
+    network_mode: "service:drum-notes"
     depends_on: [drum-notes]
     read_only: true
     security_opt: ["no-new-privileges:true"]

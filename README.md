@@ -33,8 +33,8 @@ Kein Port am Router öffnen: Der Tunnel baut die Verbindung von innen zu Cloudfl
 
 1. [one.dash.cloudflare.com](https://one.dash.cloudflare.com) → **Networks → Tunnels → Create a tunnel** → Typ *Cloudflared*, Name z. B. `drum-notes`.
 2. Bei *Install connector* den Docker-Befehl anzeigen lassen und **nur den Token** (die lange Zeichenkette nach `--token`) kopieren → in `.env` als `TUNNEL_TOKEN=...` eintragen.
-3. **Public Hostname** hinzufügen: Subdomain `drums`, deine Domain, Service **HTTP** → `drum-notes:8080`.
-   (Der Tunnel-Container hängt im selben Docker-Netz und erreicht die App über ihren Namen.)
+3. **Public Hostname** hinzufügen: Subdomain `drums`, deine Domain, Service **HTTP** → `localhost:8080`.
+   (Der Tunnel-Container teilt sich das Netzwerk mit der App, deshalb ist sie für ihn unter `localhost` erreichbar.)
 
 > Du hast schon einen cloudflared-Container für andere Dienste? Dann den Tunnel-Teil hier weglassen (`docker compose up -d`), in `.env` `HOST_BIND=0.0.0.0` setzen und im bestehenden Tunnel einen Public Hostname auf `http://<server-ip>:8085` anlegen.
 
