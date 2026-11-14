@@ -6,6 +6,7 @@ Läuft als Docker-Container auf dem eigenen Server. Die Songs liegen zentral auf
 
 - **Offline:** Die App ist eine PWA. Einmal geöffnet, startet sie auch ohne Netz. Änderungen werden lokal gespeichert und automatisch übertragen, sobald der Server wieder erreichbar ist.
 - **Alle Geräte:** Handy, iPad und Rechner sehen dieselben Songs. Bei gleichzeitigen Änderungen am selben Song gewinnt die neuere.
+- **Bibliothek mit Ordnern:** Unterordner, Suche, Sortierung, Umbenennen, Verschieben (auch per Drag & Drop am Rechner), Mehrfachauswahl und Papierkorb. Ordner werden wie Songs synchronisiert.
 - **Statuspunkt** oben rechts: grün = synchronisiert, orange = Server nicht erreichbar (Änderungen warten), rot = Passwort nötig, grau = nur lokal.
 
 ## Installation auf dem Server

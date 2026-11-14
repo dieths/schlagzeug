@@ -67,6 +67,25 @@ input[type=range]{width:120px}
 textarea{width:100%;min-height:120px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);font:12px/1.3 ui-monospace,Menlo,monospace;padding:8px}
 #toast{position:fixed;left:50%;top:calc(14px + env(safe-area-inset-top));transform:translateX(-50%);background:var(--on);color:var(--onink);padding:8px 14px;border-radius:20px;font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:60}
 #toast.show{opacity:1}
+.btn.sm{padding:5px 9px;font-size:13px;border-radius:8px}
+.llist{margin-top:6px}
+.lrow{gap:6px;padding:4px 0}
+.lrow span{flex:none}.lrow .lmain,.lrow .lname{flex:1}
+.lmain{flex:1;display:flex;align-items:center;gap:10px;min-width:0;cursor:pointer;padding:6px 2px;border-radius:8px}
+.lmain:active{background:var(--cell)}
+.lname{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis}
+.lname small{display:block;color:var(--muted);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fic{width:26px;text-align:center;font-size:18px;flex:none}
+.lcur .lname{font-weight:700}
+.lsel{background:color-mix(in srgb,var(--acc2) 12%,transparent)}
+.ldrop{outline:2px dashed var(--acc2);outline-offset:-2px;border-radius:8px}
+.lmenu{display:flex;gap:6px;flex-wrap:wrap;align-items:center;padding:6px 0 10px 36px;border-bottom:1px solid var(--line)}
+.lmenu input{flex:1;min-width:120px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);padding:6px 8px;font-size:15px}
+.lbar{display:flex;align-items:center;gap:6px;margin-top:8px;padding:8px;border-radius:10px;background:var(--cell)}
+.crumbs{margin:10px 0 2px;font-size:14px;color:var(--muted)}
+.crumbs span{cursor:pointer;color:var(--acc2);padding:2px 3px;border-radius:6px}
+.lchk{width:20px;height:20px;flex:none}
+#lq{border:1px solid var(--line);border-radius:10px;background:var(--bg);padding:7px 10px;font-size:15px}
 .sync{width:11px;height:11px;border-radius:50%;background:var(--muted);flex:none;cursor:pointer}.sync.local{opacity:.35}.sync.ok{background:#2f9e44}.sync.off{background:#f08c00}.sync.auth{background:#e03131}.sync.busy{background:var(--acc2)}
 .legend{font-size:12px;color:var(--muted);margin-top:8px}
 .hint{font-size:12px;color:var(--muted);margin-top:4px}
@@ -92,7 +111,7 @@ label.fld{display:block;margin-top:10px}label.fld span{display:block;font-size:1
   <input id="name" aria-label="Songname">
   <span id="syncDot" class="sync local" role="button" tabindex="0" aria-label="Speicherstatus"></span>
   <button class="btn" id="bPdf">PDF</button>
-  <button class="btn" id="bSongs">☰ Songs</button>
+  <button class="btn" id="bSongs">📁 Songs</button>
 </header>
 
 <div class="card">
@@ -281,7 +300,7 @@ let song,sel=0,undoStack=[],tool='hit';
 const opt={click:true,drums:true,countIn:true,loop:true,mode:'all',from:1,to:2,follow:true,tr:false,trStep:5,trEvery:2,trMax:160,vD:0.8,vC:0.7,focus:false};
 const LS={get(k){try{const v=localStorage.getItem(k);return v?JSON.parse(v):null}catch(e){return null}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
 function validSong(s){return s&&Array.isArray(s.measures)&&s.measures.length>0&&s.measures.every(m=>m&&m.num>0&&m.num<=32&&[2,4,8].includes(m.den)&&(Array.isArray(m.subs)||[2,3,4].includes(m.res))&&m.notes);}
-function normalize(s){s.name=s.name||'Ohne Titel';s.id=typeof s.id==='string'&&/^[A-Za-z0-9-]{1,64}$/.test(s.id)?s.id:uid();s.updatedAt=+s.updatedAt||Date.now();delete s.deleted;const mt=s.meta&&typeof s.meta==='object'?s.meta:{};s.meta={};['sub','comp','arr','style','copy','notes'].forEach(k=>{s.meta[k]=String(mt[k]||'').slice(0,k==='notes'?2000:200);});s.meta.legend=mt.legend!==false;s.meta.stick=mt.stick!==false;s.bpm=Math.min(300,Math.max(30,+s.bpm||90));
+function normalize(s){s.name=s.name||'Ohne Titel';s.id=typeof s.id==='string'&&/^[A-Za-z0-9-]{1,64}$/.test(s.id)?s.id:uid();s.updatedAt=+s.updatedAt||Date.now();delete s.deleted;s.folder=typeof s.folder==='string'?s.folder:'';if(!s.trashed){delete s.trashed;delete s.trashRoot;}const mt=s.meta&&typeof s.meta==='object'?s.meta:{};s.meta={};['sub','comp','arr','style','copy','notes'].forEach(k=>{s.meta[k]=String(mt[k]||'').slice(0,k==='notes'?2000:200);});s.meta.legend=mt.legend!==false;s.meta.stick=mt.stick!==false;s.bpm=Math.min(300,Math.max(30,+s.bpm||90));
  s.measures=s.measures.map(m=>{const nb=nbeats(m.num,m.den);let subs=Array.isArray(m.subs)?m.subs.slice():(m.den===8?Array(nb).fill(m.res/2):Array(nb).fill(m.res));
   const allowed=SUBS[dk(m.den)];subs=subs.map(k=>Array.isArray(k)&&PARTK[k.length]&&k.every(q=>PARTK[k.length].includes(q))?k.slice():allowed.includes(k)?k:(m.den===8?2:4));
   const r=mk(m.num,m.den,subs);const n=nsteps(r);
@@ -292,7 +311,7 @@ let LIB={},lastSig='';
 const uid=()=>(window.crypto&&crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,12));
 function sig(x){const {updatedAt,...r}=x;return JSON.stringify(r);}
 function saveLib(){LS.set('dn.songs',LIB);}
-function persist(){LS.set('dn.opt',opt);LS.set('dn.cur',{id:song.id,sel});const g=sig(song);if(g!==lastSig){lastSig=g;song.updatedAt=Date.now();LIB[song.id]=JSON.parse(JSON.stringify(song));saveLib();scheduleSync();}}
+function persist(){LS.set('dn.opt',opt);LS.set('dn.cur',{id:song.id,sel});if(song.pristine&&lastSig&&sig(song)!==lastSig)delete song.pristine;const g=sig(song);if(g!==lastSig){lastSig=g;song.updatedAt=Date.now();LIB[song.id]=JSON.parse(JSON.stringify(song));saveLib();scheduleSync();}}
 function pushUndo(){undoStack.push(JSON.stringify({song,sel}));if(undoStack.length>100)undoStack.shift();}
 function doUndo(){const s=undoStack.pop();if(!s){toast('Nichts zum Zurücknehmen');return;}const o=JSON.parse(s);song=o.song;sel=Math.min(o.sel,song.measures.length-1);renderAll();persist();}
 let toastT;function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>e.classList.remove('show'),1800);}
@@ -679,38 +698,129 @@ $('#vC').oninput=e=>{opt.vC=+e.target.value;if(clickBus)clickBus.gain.value=opt.
 
 /* ---------- Songs-Dialog ---------- */
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-function openModal(html){$('#sheet').innerHTML=html;$('#modal').classList.add('open');}
-function closeModal(){$('#modal').classList.remove('open');}
+function openModal(html){LV.open=false;$('#sheet').innerHTML=html;$('#modal').classList.add('open');}
+function closeModal(){LV.open=false;$('#modal').classList.remove('open');}
 $('#modal').addEventListener('click',e=>{if(e.target.id==='modal')closeModal();});
 function openSong(x){if(P.on)stop();undoStack=[];song=normalize(JSON.parse(JSON.stringify(x)));sel=0;lastSig=sig(song);LS.set('dn.cur',{id:song.id,sel});renderAll();closeModal();}
-function loadSong(x){const c=JSON.parse(JSON.stringify(x));c.id=uid();c.updatedAt=Date.now();openSong(c);lastSig='';persist();}
-const liveSongs=()=>Object.values(LIB).filter(x=>x&&!x.deleted&&validSong(x)).sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0));
-function openFirst(){const l=liveSongs();if(l.length)openSong(l[0]);else loadSong(PRESETS['Leeres Blatt (4/4)']());}
+function loadSong(x,folder){const c=JSON.parse(JSON.stringify(x));c.id=uid();c.updatedAt=Date.now();c.folder=folder||'';delete c.trashed;delete c.trashRoot;openSong(c);lastSig='';persist();}
+const isSongRec=x=>x&&!x.kind&&!x.deleted&&validSong(x);
+const isFolder=x=>x&&x.kind==='folder'&&!x.deleted;
+const liveSongs=()=>Object.values(LIB).filter(x=>isSongRec(x)&&!x.trashed).sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0));
+function openFirst(){const l=liveSongs();if(l.length)openSong(l[0]);else loadSong(PRESETS['Leeres Blatt (4/4)'](),LV.folder);}
 const SYNCTXT={ok:'Mit dem Server synchronisiert',off:'Server gerade nicht erreichbar – Änderungen werden übertragen, sobald er wieder da ist',local:'Nur auf diesem Gerät gespeichert',auth:'Passwort für den Server nötig',busy:'Synchronisiere …'};
 function fmtDate(t){try{return new Date(t).toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'2-digit'});}catch(e){return '';}}
-function songsDialog(){
- const l=liveSongs();
- let h=`<div class="row"><h2 style="flex:1;margin:0">Songs</h2><button class="btn" data-a="close">Fertig</button></div>
- <p class="muted" style="margin:6px 0 0">Alles wird automatisch gespeichert. ${esc(SYNCTXT[SY.st]||'')}.</p>
- <h4>Meine Songs</h4>`;
- h+=l.map(x=>`<div class="li"><span>${x.id===song.id?'<b>':''}${esc(x.name)}${x.id===song.id?'</b>':''} <span class="muted">· ${x.measures.length} Takte · ${fmtDate(x.updatedAt)}</span></span>${x.id===song.id?'<span class="muted">offen</span>':`<button class="btn" data-a="open" data-n="${esc(x.id)}">Öffnen</button>`}<button class="btn" data-a="dupl" data-n="${esc(x.id)}" aria-label="Duplizieren">⧉</button><button class="btn" data-a="del" data-n="${esc(x.id)}" aria-label="Löschen">✕</button></div>`).join('');
- h+=`<h4>Neuer Song aus Vorlage</h4>`+Object.keys(PRESETS).map(k=>`<div class="li"><span>${esc(k)}</span><button class="btn" data-a="preset" data-n="${esc(k)}">Neu</button></div>`).join('');
- h+=`<h4>Teilen / Sichern</h4><p class="muted" style="margin:0 0 6px">Song als Text kopieren, z. B. zum Weitergeben. Zum Importieren Text einfügen und laden.</p>
+
+/* ---------- Bibliothek (Ordner, Papierkorb) ---------- */
+const LV={open:false,folder:'',view:'files',q:'',select:false,sel:new Set(),menu:'',rename:'',newFolder:false,newSong:false,move:null};
+const recOf=id=>id===song.id?song:LIB[id];
+function liveFolder(id){const f=LIB[id];return isFolder(f)&&!f.trashed?f:null;}
+function parentOf(x){const p=x.kind==='folder'?x.parent:x.folder;return p&&liveFolder(p)&&p!==x.id?p:'';}
+function pathOf(fid){const out=[];let f=liveFolder(fid),guard=0;while(f&&guard++<50){out.unshift(f);f=liveFolder(f.parent);}return out;}
+function childFolders(fid){return Object.values(LIB).filter(x=>isFolder(x)&&!x.trashed&&parentOf(x)===fid).sort((a,b)=>a.name.localeCompare(b.name,'de'));}
+function childSongs(fid){const l=Object.values(LIB).filter(x=>isSongRec(x)&&!x.trashed&&parentOf(x)===fid);
+ return opt.libSort==='date'?l.sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0)):l.sort((a,b)=>a.name.localeCompare(b.name,'de'));}
+function countDeep(fid){return childSongs(fid).length+childFolders(fid).reduce((a,f)=>a+countDeep(f.id),0);}
+function descendants(fid){const out=[];childFolders(fid).forEach(f=>{out.push(f.id);out.push(...descendants(f.id));});return out;}
+function editRec(id,fn){if(id===song.id){fn(song);persist();}else{const x=LIB[id];if(!x)return;fn(x);x.updatedAt=Date.now();}}
+function libSaved(){saveLib();scheduleSync();}
+function moveItems(ids,target){let n=0;ids.forEach(id=>{const x=recOf(id);if(!x)return;
+  if(x.kind==='folder'&&(id===target||descendants(id).includes(target)))return;
+  editRec(id,r=>{if(r.kind==='folder')r.parent=target;else r.folder=target;});n++;});
+ libSaved();toast(n?`${n} ${n===1?'Eintrag':'Einträge'} verschoben`:'Ein Ordner kann nicht in sich selbst liegen');}
+function trashItems(ids){let n=0;ids.forEach(id=>{const x=recOf(id);if(!x||x.trashed)return;
+  const all=x.kind==='folder'?[id,...descendants(id),...descendants(id).concat(id).flatMap(f=>childSongs(f).map(s=>s.id))]:[id];
+  [...new Set(all)].forEach(k=>editRec(k,r=>{r.trashed=true;r.trashRoot=id;}));n++;});
+ libSaved();if(song.trashed)openFirst();toast(`${n} ${n===1?'Eintrag':'Einträge'} in den Papierkorb gelegt`);}
+const trashRoots=()=>Object.values(LIB).filter(x=>x&&!x.deleted&&x.trashed&&x.trashRoot===x.id&&(x.kind==='folder'||validSong(x)));
+function restoreItem(id){Object.values(LIB).filter(x=>x&&!x.deleted&&x.trashed&&x.trashRoot===id).forEach(x=>editRec(x.id,r=>{delete r.trashed;delete r.trashRoot;}));
+ const x=LIB[id];if(x&&parentOf(x)===''&&(x.kind==='folder'?x.parent:x.folder))editRec(id,r=>{if(r.kind==='folder')r.parent='';else r.folder='';});libSaved();}
+function purgeItem(id){Object.values(LIB).filter(x=>x&&!x.deleted&&x.trashed&&x.trashRoot===id).forEach(x=>{LIB[x.id]={id:x.id,deleted:true,updatedAt:Date.now()};});libSaved();}
+function dupSong(id){const c=JSON.parse(JSON.stringify(LIB[id]));c.id=uid();c.name+=' (Kopie)';c.updatedAt=Date.now();LIB[c.id]=c;libSaved();}
+
+function libDialog(){
+ if(LV.folder&&!liveFolder(LV.folder))LV.folder='';
+ const ic=(t)=>`<span class="fic">${t}</span>`;
+ const more=id=>LV.select?'':`<button class="btn sm" data-a="Lmenu" data-n="${id}" aria-label="Aktionen">⋯</button>`;
+ const chk=id=>LV.select?`<input type="checkbox" class="lchk" data-a="Ltog" data-n="${id}" ${LV.sel.has(id)?'checked':''}>`:'';
+ const menuRow=x=>{if(LV.menu!==x.id)return '';
+  if(LV.rename===x.id)return `<div class="lmenu"><input id="renIn" value="${esc(x.name)}" maxlength="120"><button class="btn pri sm" data-a="LrenOk" data-n="${x.id}">OK</button><button class="btn sm" data-a="Lmenu" data-n="">Abbrechen</button></div>`;
+  return `<div class="lmenu"><button class="btn sm" data-a="Lren" data-n="${x.id}">Umbenennen</button><button class="btn sm" data-a="Lmove" data-n="${x.id}">Verschieben</button>${x.kind?'':`<button class="btn sm" data-a="Ldup" data-n="${x.id}">Duplizieren</button>`}<button class="btn sm" data-a="Ltrash" data-n="${x.id}">🗑 Papierkorb</button></div>`;};
+ const folderRow=(f,sub)=>`<div class="li lrow${LV.sel.has(f.id)?' lsel':''}" draggable="${!LV.select}" data-drag="${f.id}" data-drop="${f.id}">${chk(f.id)}<span class="lmain" data-a="${LV.select?'Ltog':'Lcd'}" data-n="${f.id}">${ic('📁')}<span class="lname">${esc(f.name)}${sub?`<small>${esc(sub)}</small>`:''}</span><span class="muted">${countDeep(f.id)}</span></span>${more(f.id)}</div>`+menuRow(f);
+ const songRow=(x,sub)=>{const cur=x.id===song.id;return `<div class="li lrow${cur?' lcur':''}${LV.sel.has(x.id)?' lsel':''}" draggable="${!LV.select}" data-drag="${x.id}">${chk(x.id)}<span class="lmain" data-a="${LV.select?'Ltog':'Lopen'}" data-n="${x.id}">${ic('♪')}<span class="lname">${esc(x.name)}<small>${sub?esc(sub)+' · ':''}${x.measures.length} Takte · ${fmtDate(x.updatedAt)}${cur?' · geöffnet':''}</small></span></span>${more(x.id)}</div>`+menuRow(x);};
+ const tr=trashRoots();
+ let h=`<div class="row"><h2 style="flex:1;margin:0">Bibliothek</h2><button class="btn" data-a="close">Fertig</button></div>
+ <p class="muted" style="margin:4px 0 8px">Alles wird automatisch gespeichert. ${esc(SYNCTXT[SY.st]||'')}.</p>`;
+ if(LV.move){const ids=LV.move;const bad=new Set(ids.flatMap(id=>LIB[id]&&LIB[id].kind==='folder'?[id,...descendants(id)]:[]));
+  const tree=(fid,d)=>childFolders(fid).filter(f=>!bad.has(f.id)).map(f=>`<div class="li lrow" style="padding-left:${d*18}px"><span class="lmain" data-a="LmoveTo" data-n="${f.id}">${ic('📁')}<span class="lname">${esc(f.name)}</span></span></div>`+tree(f.id,d+1)).join('');
+  h+=`<h4>${ids.length===1?'„'+esc(recOf(ids[0]).name)+'“':ids.length+' Einträge'} verschieben nach …</h4>
+  <div class="li lrow"><span class="lmain" data-a="LmoveTo" data-n="">${ic('🏠')}<span class="lname">Bibliothek (oberste Ebene)</span></span></div>${tree('',1)}
+  <div class="row" style="margin-top:10px"><button class="btn" data-a="LmoveCancel">Abbrechen</button></div>`;
+  openModal(h);LV.open=true;return;}
+ if(LV.view==='trash'){
+  h+=`<div class="row"><button class="btn" data-a="Lview" data-n="files">← Zurück zur Bibliothek</button><span class="sp"></span>${tr.length?'<button class="btn" data-a="Lempty">Papierkorb leeren</button>':''}</div><h4>Papierkorb</h4>`;
+  h+=tr.length?tr.map(x=>`<div class="li lrow"><span class="lmain">${ic(x.kind?'📁':'♪')}<span class="lname">${esc(x.name)}<small>${x.kind?countTrash(x.id)+' Songs · ':''}gelöscht ${fmtDate(x.updatedAt)}</small></span></span><button class="btn sm" data-a="Lrestore" data-n="${x.id}">Wiederherstellen</button><button class="btn sm" data-a="Lpurge" data-n="${x.id}" aria-label="Endgültig löschen">✕</button></div>`).join(''):'<p class="muted">Der Papierkorb ist leer.</p>';
+  openModal(h);LV.open=true;return;}
+ h+=`<div class="row"><input id="lq" type="search" placeholder="Suchen …" value="${esc(LV.q)}" style="flex:1;min-width:120px"><select id="lsort" aria-label="Sortierung"><option value="name" ${opt.libSort!=='date'?'selected':''}>A–Z</option><option value="date" ${opt.libSort==='date'?'selected':''}>Neueste</option></select></div>
+ <div class="row"><button class="btn sm" data-a="LnewF">＋ Ordner</button><button class="btn sm" data-a="LnewS">＋ Song</button><button class="btn sm${LV.select?' on':''}" data-a="Lsel">Auswählen</button><span class="sp"></span><button class="btn sm" data-a="Lview" data-n="trash">🗑 ${tr.length||''}</button></div>`;
+ if(!LV.q){h+=`<div class="crumbs"><span data-a="Lcd" data-n="" data-drop="">🏠 Bibliothek</span>`+pathOf(LV.folder).map(f=>` › <span data-a="Lcd" data-n="${f.id}" data-drop="${f.id}">${esc(f.name)}</span>`).join('')+`</div>`;}
+ if(LV.newFolder)h+=`<div class="lmenu"><span class="fic">📁</span><input id="nfIn" placeholder="Name des Ordners" maxlength="120"><button class="btn pri sm" data-a="LnewFok">Anlegen</button><button class="btn sm" data-a="LnewF">Abbrechen</button></div>`;
+ if(LV.newSong)h+=`<div class="lmenu" style="flex-direction:column;align-items:stretch"><span class="muted">Neuer Song in „${esc(liveFolder(LV.folder)?liveFolder(LV.folder).name:'Bibliothek')}“ – Vorlage wählen:</span>`+Object.keys(PRESETS).map(k=>`<button class="btn sm" style="text-align:left" data-a="Lpreset" data-n="${esc(k)}">${esc(k)}</button>`).join('')+`</div>`;
+ if(LV.select&&LV.sel.size)h+=`<div class="lbar"><b>${LV.sel.size} ausgewählt</b><span class="sp"></span><button class="btn sm" data-a="LselMove">Verschieben</button><button class="btn sm" data-a="LselTrash">🗑 Löschen</button></div>`;
+ let rows='';
+ if(LV.q){const q=LV.q.toLowerCase();const pth=x=>{const p=pathOf(parentOf(x)).map(f=>f.name).join(' › ');return p||'Bibliothek';};
+  const fs=Object.values(LIB).filter(x=>isFolder(x)&&!x.trashed&&x.name.toLowerCase().includes(q));
+  const ss=Object.values(LIB).filter(x=>isSongRec(x)&&!x.trashed&&(x.name.toLowerCase().includes(q)||(x.meta&&(x.meta.comp||'').toLowerCase().includes(q))));
+  rows=fs.map(f=>folderRow(f,pth(f))).join('')+ss.map(x=>songRow(x,pth(x))).join('');
+  if(!rows)rows='<p class="muted">Nichts gefunden.</p>';}
+ else{rows=childFolders(LV.folder).map(f=>folderRow(f)).join('')+childSongs(LV.folder).map(x=>songRow(x)).join('');
+  if(!rows)rows=`<p class="muted">Dieser Ordner ist leer. Mit „＋ Song“ legst du hier einen neuen Song an${LV.folder?', oder du verschiebst Songs hierher':''}.</p>`;}
+ h+=`<div class="llist">${rows}</div>`;
+ h+=`<details style="margin-top:14px"><summary>Teilen / Sichern</summary><p class="muted" style="margin:6px 0">Song als Text kopieren, z. B. zum Weitergeben. Zum Importieren Text einfügen und laden – er landet im aktuellen Ordner.</p>
  <textarea id="io" placeholder="Song-Text hier einfügen…"></textarea>
- <div class="row" style="margin-top:6px"><button class="btn" data-a="export">Aktuellen Song anzeigen &amp; kopieren</button><button class="btn" data-a="import">Eingefügten Text laden</button></div>`;
- openModal(h);}
-$('#bSongs').onclick=songsDialog;
+ <div class="row" style="margin-top:6px"><button class="btn" data-a="export">Aktuellen Song kopieren</button><button class="btn" data-a="import">Eingefügten Text laden</button></div></details>`;
+ openModal(h);LV.open=true;
+ const ri=$('#renIn');if(ri){ri.focus();ri.select();}const nf=$('#nfIn');if(nf)nf.focus();}
+function countTrash(id){return Object.values(LIB).filter(x=>isSongRec(x)&&x.trashed&&x.trashRoot===id).length;}
+$('#bSongs').onclick=()=>{LV.view='files';LV.move=null;LV.menu='';LV.newFolder=LV.newSong=false;LV.folder=parentOf(song);libDialog();};
+$('#sheet').addEventListener('input',e=>{if(e.target.id==='lq'){LV.q=e.target.value;const pos=e.target.selectionStart;libDialog();const q=$('#lq');if(q){q.focus();try{q.setSelectionRange(pos,pos);}catch(_){}}}});
+$('#sheet').addEventListener('change',e=>{if(e.target.id==='lsort'){opt.libSort=e.target.value;persist();libDialog();}});
+$('#sheet').addEventListener('keydown',e=>{if(e.key!=='Enter')return;if(e.target.id==='renIn')$('[data-a="LrenOk"]').click();if(e.target.id==='nfIn')$('[data-a="LnewFok"]').click();});
 $('#sheet').addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(!b)return;const a=b.dataset.a,n=b.dataset.n;
- if(a==='close')closeModal();
- else if(a==='open'&&LIB[n]&&validSong(LIB[n]))openSong(LIB[n]);
- else if(a==='dupl'&&LIB[n]){const c=JSON.parse(JSON.stringify(LIB[n]));c.id=uid();c.name+=' (Kopie)';c.updatedAt=Date.now();LIB[c.id]=c;saveLib();scheduleSync();songsDialog();toast('Kopie angelegt');}
- else if(a==='del'){if(b.dataset.confirm){LIB[n]={id:n,deleted:true,updatedAt:Date.now()};saveLib();scheduleSync();if(n===song.id)openFirst();songsDialog();}else{b.dataset.confirm='1';b.textContent='Wirklich?';b.classList.add('pri');}}
- else if(a==='preset')loadSong(PRESETS[n]());
- else if(a==='export'){const c=JSON.parse(JSON.stringify(song));delete c.id;delete c.updatedAt;const t=JSON.stringify(c);const io=$('#io');io.value=t;io.select();
-  (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>toast('In Zwischenablage kopiert')).catch(()=>toast('Text markiert – bitte selbst kopieren'));}
- else if(a==='import'){try{const x=JSON.parse($('#io').value);if(!validSong(x))throw 0;loadSong(x);toast('Song geladen');}catch(err){toast('Text ist kein gültiger Song');}}
- else if(a==='tokenGo'){const v=$('#tok').value;LS.set('dn.token',v);closeModal();SERVER=true;sync();}
-});
+ const R=()=>libDialog();
+ switch(a){
+  case 'close':closeModal();break;
+  case 'Lcd':LV.folder=n||'';LV.q='';LV.menu='';R();break;
+  case 'Lopen':if(LIB[n]&&validSong(LIB[n])){if(n!==song.id)openSong(LIB[n]);else closeModal();}break;
+  case 'Lmenu':LV.menu=LV.menu===n?'':n;LV.rename='';R();break;
+  case 'Lren':LV.rename=n;R();break;
+  case 'LrenOk':{const v=($('#renIn').value||'').trim();if(v){editRec(n,r=>{r.name=v;});if(n===song.id)$('#name').value=v;libSaved();}LV.menu=LV.rename='';R();break;}
+  case 'Ldup':dupSong(n);LV.menu='';toast('Kopie angelegt');R();break;
+  case 'Ltrash':trashItems([n]);LV.menu='';R();break;
+  case 'Lmove':LV.move=[n];LV.menu='';R();break;
+  case 'LmoveTo':moveItems(LV.move,n||'');LV.move=null;LV.sel.clear();LV.select=false;R();break;
+  case 'LmoveCancel':LV.move=null;R();break;
+  case 'LnewF':LV.newFolder=!LV.newFolder;LV.newSong=false;R();break;
+  case 'LnewFok':{const v=($('#nfIn').value||'').trim();if(!v){toast('Bitte einen Namen eingeben');break;}const f={id:uid(),kind:'folder',name:v,parent:LV.folder,updatedAt:Date.now()};LIB[f.id]=f;libSaved();LV.newFolder=false;R();break;}
+  case 'LnewS':LV.newSong=!LV.newSong;LV.newFolder=false;R();break;
+  case 'Lpreset':LV.newSong=false;loadSong(PRESETS[n](),LV.folder);break;
+  case 'Lsel':LV.select=!LV.select;LV.sel.clear();LV.menu='';R();break;
+  case 'Ltog':if(e.target.tagName!=='INPUT'||true){LV.sel.has(n)?LV.sel.delete(n):LV.sel.add(n);}R();break;
+  case 'LselMove':LV.move=[...LV.sel];R();break;
+  case 'LselTrash':trashItems([...LV.sel]);LV.sel.clear();LV.select=false;R();break;
+  case 'Lview':LV.view=n;R();break;
+  case 'Lrestore':restoreItem(n);toast('Wiederhergestellt');R();break;
+  case 'Lpurge':if(b.dataset.confirm){purgeItem(n);R();}else{b.dataset.confirm='1';b.textContent='Endgültig?';b.classList.add('pri');}break;
+  case 'Lempty':if(b.dataset.confirm){trashRoots().forEach(x=>purgeItem(x.id));R();}else{b.dataset.confirm='1';b.textContent='Wirklich alles löschen?';b.classList.add('pri');}break;
+  case 'export':{const c=JSON.parse(JSON.stringify(song));['id','updatedAt','folder','trashed','trashRoot'].forEach(k=>delete c[k]);const t=JSON.stringify(c);const io=$('#io');io.value=t;io.select();
+   (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>toast('In Zwischenablage kopiert')).catch(()=>toast('Text markiert – bitte selbst kopieren'));break;}
+  case 'import':try{const x=JSON.parse($('#io').value);if(!validSong(x))throw 0;loadSong(x,LV.folder);toast('Song geladen');}catch(err){toast('Text ist kein gültiger Song');}break;
+  case 'tokenGo':{const v=$('#tok').value;LS.set('dn.token',v);closeModal();SERVER=true;SY.asked=false;sync();break;}
+ }});
+// Drag & Drop (Maus)
+$('#sheet').addEventListener('dragstart',e=>{const r=e.target.closest('[data-drag]');if(!r)return;e.dataTransfer.setData('text/plain',r.dataset.drag);e.dataTransfer.effectAllowed='move';});
+$('#sheet').addEventListener('dragover',e=>{const t=e.target.closest('[data-drop]');if(!t)return;e.preventDefault();document.querySelectorAll('.ldrop').forEach(x=>x!==t&&x.classList.remove('ldrop'));t.classList.add('ldrop');});
+$('#sheet').addEventListener('dragleave',e=>{const t=e.target.closest('[data-drop]');if(t&&!t.contains(e.relatedTarget))t.classList.remove('ldrop');});
+$('#sheet').addEventListener('drop',e=>{const t=e.target.closest('[data-drop]');if(!t)return;e.preventDefault();const id=e.dataTransfer.getData('text/plain');if(id&&id!==t.dataset.drop){moveItems([id],t.dataset.drop);libDialog();}});
 
 /* ---------- Server-Sync (wenn die App auf dem eigenen Server läuft) ---------- */
 const SY={st:'local',t:0,busy:false,again:false,asked:false};let SERVER=false;
@@ -723,10 +833,12 @@ function scheduleSync(d){if(!SERVER)return;clearTimeout(SY.t);SY.t=setTimeout(sy
 async function sync(){if(!SERVER)return;if(SY.busy){SY.again=true;return;}SY.busy=true;
  try{const remote=await api('songs');const rm={};let curChanged=false;
   remote.forEach(R=>{if(!R||!R.id)return;rm[R.id]=R;const L=LIB[R.id];if(!L||(+R.updatedAt||0)>(+L.updatedAt||0)){LIB[R.id]=R;if(R.id===song.id)curChanged=true;}});
+  if(remote.some(R=>R&&!R.deleted&&!R.kind&&!R.trashed))for(const id in LIB){if(LIB[id]&&LIB[id].pristine&&!rm[id]&&!(id===song.id&&!song.pristine))delete LIB[id];}
   for(const id in LIB){const L=LIB[id],R=rm[id];if(!R||(+L.updatedAt||0)>(+R.updatedAt||0)){try{await api('songs/'+encodeURIComponent(id),{method:'PUT',body:JSON.stringify(L)});}catch(e){if(!e||e.status!==409)throw e;}}}
   saveLib();
-  if(curChanged){const c=LIB[song.id];if(c.deleted)openFirst();else if(validSong(c)){const ks=sel;song=normalize(JSON.parse(JSON.stringify(c)));lastSig=sig(song);sel=Math.min(ks,song.measures.length-1);if(!P.on)renderAll();}}
-  setSync('ok');}
+  if(curChanged){const c=LIB[song.id];if(c.deleted||c.trashed)openFirst();else if(validSong(c)){const ks=sel;song=normalize(JSON.parse(JSON.stringify(c)));lastSig=sig(song);sel=Math.min(ks,song.measures.length-1);if(!P.on)renderAll();}}
+  if(!LIB[song.id]&&liveSongs().length)openFirst();
+  setSync('ok');if(LV.open)libDialog();}
  catch(e){if(e&&e.auth){setSync('auth');askToken();}else setSync('off');}
  finally{SY.busy=false;if(SY.again){SY.again=false;scheduleSync(300);}}}
 function askToken(){if(SY.asked)return;SY.asked=true;openModal(`<h2>Passwort für Drum Notes</h2><p class="muted">Der Server ist mit einem Passwort geschützt. Es wird nur auf diesem Gerät gespeichert.</p><label class="fld"><span>Passwort</span><input id="tok" type="password" autocomplete="current-password"></label><div class="row" style="margin-top:12px"><button class="btn pri" data-a="tokenGo">Verbinden</button><button class="btn" data-a="close">Später</button></div>`);}
@@ -868,7 +980,7 @@ async function saveFile(blob,fn){if(downloads){await downloads.save({filename:fn
  const d=LS.get('dn.draft');if(d&&validSong(d.song)){const c=normalize(d.song);LIB[c.id]=c;LS.set('dn.cur',{id:c.id,sel:d.sel|0});try{localStorage.removeItem('dn.draft');}catch(e){}}
  const cur=LS.get('dn.cur');const c0=cur&&LIB[cur.id]&&!LIB[cur.id].deleted&&validSong(LIB[cur.id])?LIB[cur.id]:liveSongs()[0];
  if(c0){song=normalize(JSON.parse(JSON.stringify(c0)));sel=Math.min(cur&&cur.id===c0.id?cur.sel|0:0,song.measures.length-1);lastSig=sig(song);}
- else{song=normalize(PRESETS['Snare-Etüde: Rudiments & Tuplets']());sel=0;lastSig='';}
+ else{song=normalize(PRESETS['Snare-Etüde: Rudiments & Tuplets']());song.pristine=true;sel=0;lastSig='';}
  bindOpt();renderAll();persist();saveLib();initServer();
  let rw=0;addEventListener('resize',()=>{clearTimeout(rw);rw=setTimeout(()=>{renderNotation();renderEditor();},150);});
  document.addEventListener('keydown',e=>{if(e.target.matches('input,textarea,select'))return;if(e.code==='Space'){e.preventDefault();P.on?stop():start();}if((e.ctrlKey||e.metaKey)&&e.key==='z'){e.preventDefault();doUndo();}});
