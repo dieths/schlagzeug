@@ -7,35 +7,66 @@ Läuft als Docker-Container auf dem eigenen Server. Die Songs liegen zentral auf
 - **Offline:** Die App ist eine PWA. Einmal geöffnet, startet sie auch ohne Netz. Änderungen werden lokal gespeichert und automatisch übertragen, sobald der Server wieder erreichbar ist.
 - **Alle Geräte:** Handy, iPad und Rechner sehen dieselben Songs. Bei gleichzeitigen Änderungen am selben Song gewinnt die neuere.
 - **Bibliothek mit Ordnern:** Unterordner, Suche, Sortierung, Umbenennen, Verschieben (auch per Drag & Drop am Rechner), Mehrfachauswahl und Papierkorb. Ordner werden wie Songs synchronisiert.
-- **Statuspunkt** oben rechts: grün = synchronisiert, orange = Server nicht erreichbar (Änderungen warten), rot = Passwort nötig, grau = nur lokal.
+- **Statuspunkt** oben rechts: grün = synchronisiert, orange = Server nicht erreichbar (Änderungen warten), rot = Anmeldung/Passwort nötig, grau = nur lokal.
 
 ## Installation auf dem Server
 
 ```sh
 git clone https://github.com/dieths/schlagzeug.git
 cd schlagzeug
-cp .env.example .env      # Port und optional Passwort anpassen
-docker compose up -d --build
+cp .env.example .env
+nano .env                      # Werte eintragen (siehe unten)
+docker compose --profile tunnel up -d --build   # mit Cloudflare Tunnel
+# oder ohne Tunnel:  docker compose up -d --build
 ```
-
-Danach läuft die App unter `http://<server>:8085`.
 
 **Privates Repository?** Dann braucht der Server Lesezugriff, z. B. per Deploy-Key (GitHub → Repo → Settings → Deploy keys) und `git clone git@github.com:dieths/schlagzeug.git`.
 
-### Passwort (optional)
+Der Container ist gehärtet: läuft ohne Root, mit schreibgeschütztem Dateisystem (nur das Daten-Volume ist beschreibbar), ohne Linux-Capabilities und mit Speicherlimit. Standardmäßig ist der Port nur auf `127.0.0.1` gebunden, also von außen nicht erreichbar.
 
-In `.env` `APP_PASSWORD=...` setzen und `docker compose up -d` ausführen. Jedes Gerät fragt einmal danach und merkt es sich. Leer lassen, wenn die App nur im Heimnetz bzw. über WireGuard erreichbar ist.
+## Zugriff von außen mit Cloudflare Zero Trust
 
-### Nginx Proxy Manager (HTTPS)
+Kein Port am Router öffnen: Der Tunnel baut die Verbindung von innen zu Cloudflare auf, Cloudflare Access prüft vor jedem Zugriff, wer du bist.
 
-HTTPS ist nötig, damit der Offline-Modus und „Zum Home-Bildschirm“ auf dem iPhone funktionieren.
+### 1. Tunnel anlegen
 
-1. *Hosts → Proxy Hosts → Add*: Domain z. B. `drums.example.de`, Forward `http://<server-ip>:8085`.
-2. Reiter *SSL*: Let's-Encrypt-Zertifikat anfordern, *Force SSL* an.
+1. [one.dash.cloudflare.com](https://one.dash.cloudflare.com) → **Networks → Tunnels → Create a tunnel** → Typ *Cloudflared*, Name z. B. `drum-notes`.
+2. Bei *Install connector* den Docker-Befehl anzeigen lassen und **nur den Token** (die lange Zeichenkette nach `--token`) kopieren → in `.env` als `TUNNEL_TOKEN=...` eintragen.
+3. **Public Hostname** hinzufügen: Subdomain `drums`, deine Domain, Service **HTTP** → `drum-notes:8080`.
+   (Der Tunnel-Container hängt im selben Docker-Netz und erreicht die App über ihren Namen.)
+
+> Du hast schon einen cloudflared-Container für andere Dienste? Dann den Tunnel-Teil hier weglassen (`docker compose up -d`), in `.env` `HOST_BIND=0.0.0.0` setzen und im bestehenden Tunnel einen Public Hostname auf `http://<server-ip>:8085` anlegen.
+
+### 2. Zugriff absichern (Cloudflare Access)
+
+**Unbedingt vor dem ersten Aufruf einrichten** – sonst ist die App öffentlich.
+
+1. **Access → Applications → Add an application → Self-hosted**.
+2. Name `Drum Notes`, Domain `drums.deinedomain.de` (ohne Pfad, gilt damit auch für `/api`).
+3. **Session Duration:** z. B. *1 month*, damit du dich am Handy nicht ständig neu anmelden musst.
+4. Policy: Action **Allow**, Include → **Emails** → deine E-Mail-Adresse(n).
+5. Login-Methode: *One-time PIN* (Code per Mail) reicht völlig, alternativ Google/GitHub.
+
+`APP_PASSWORD` in `.env` dann leer lassen – Cloudflare Access übernimmt die Anmeldung.
+
+### 3. Starten und testen
+
+```sh
+docker compose --profile tunnel up -d --build
+docker compose logs -f cloudflared   # sollte "Registered tunnel connection" zeigen
+```
+
+`https://drums.deinedomain.de` aufrufen → Cloudflare fragt nach der Anmeldung → App erscheint, der Punkt oben rechts wird grün.
+
+Läuft die Anmeldung irgendwann ab, wird der Punkt rot („Anmeldung abgelaufen“). Ein Tipp darauf lädt die Seite neu und führt zum Login. Bis dahin wird alles lokal gespeichert und danach übertragen – es geht nichts verloren.
+
+### Im Heimnetz ohne Internet?
+
+Die App funktioniert dank Offline-Modus auch ohne Verbindung, Änderungen werden später übertragen. Wichtig: immer **dieselbe Adresse** verwenden (die Cloudflare-Adresse), denn jede Adresse hat im Browser ihren eigenen lokalen Speicher.
 
 ### Auf dem Handy installieren
 
-Seite in Safari öffnen → Teilen → **Zum Home-Bildschirm**. (Android/Chrome: Menü → *App installieren*.)
+`https://drums.deinedomain.de` in Safari öffnen, anmelden → Teilen → **Zum Home-Bildschirm**. (Android/Chrome: Menü → *App installieren*.) Die Home-Bildschirm-App hat auf dem iPhone ihre eigene Anmeldung – beim ersten Start einmal anmelden.
 
 ## Updates
 
@@ -45,7 +76,7 @@ Neue Versionen landen hier im Repository. Auf dem Server:
 ./update.sh
 ```
 
-Das holt den neuen Stand (`git pull`) und baut den Container neu. Die Songs bleiben im Volume erhalten. Die Geräte laden die neue Version beim nächsten Öffnen mit Netz.
+Das holt den neuen Stand (`git pull`) und baut den Container neu (mit Tunnel, wenn `TUNNEL_TOKEN` gesetzt ist). Die Songs bleiben im Volume erhalten. Die Geräte laden die neue Version beim nächsten Öffnen mit Netz.
 
 ## Datensicherung
 

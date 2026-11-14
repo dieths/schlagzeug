@@ -86,7 +86,7 @@ textarea{width:100%;min-height:120px;border:1px solid var(--line);border-radius:
 .crumbs span{cursor:pointer;color:var(--acc2);padding:2px 3px;border-radius:6px}
 .lchk{width:20px;height:20px;flex:none}
 #lq{border:1px solid var(--line);border-radius:10px;background:var(--bg);padding:7px 10px;font-size:15px}
-.sync{width:11px;height:11px;border-radius:50%;background:var(--muted);flex:none;cursor:pointer}.sync.local{opacity:.35}.sync.ok{background:#2f9e44}.sync.off{background:#f08c00}.sync.auth{background:#e03131}.sync.busy{background:var(--acc2)}
+.sync{width:11px;height:11px;border-radius:50%;background:var(--muted);flex:none;cursor:pointer}.sync.local{opacity:.35}.sync.ok{background:#2f9e44}.sync.off{background:#f08c00}.sync.auth,.sync.login{background:#e03131}.sync.busy{background:var(--acc2)}
 .legend{font-size:12px;color:var(--muted);margin-top:8px}
 .hint{font-size:12px;color:var(--muted);margin-top:4px}
 #ned{overflow-x:auto;overflow-y:hidden;margin-top:8px;border:1px solid var(--line);border-radius:12px;background:var(--bg);padding:4px 0}
@@ -707,7 +707,7 @@ const isSongRec=x=>x&&!x.kind&&!x.deleted&&validSong(x);
 const isFolder=x=>x&&x.kind==='folder'&&!x.deleted;
 const liveSongs=()=>Object.values(LIB).filter(x=>isSongRec(x)&&!x.trashed).sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0));
 function openFirst(){const l=liveSongs();if(l.length)openSong(l[0]);else loadSong(PRESETS['Leeres Blatt (4/4)'](),LV.folder);}
-const SYNCTXT={ok:'Mit dem Server synchronisiert',off:'Server gerade nicht erreichbar – Änderungen werden übertragen, sobald er wieder da ist',local:'Nur auf diesem Gerät gespeichert',auth:'Passwort für den Server nötig',busy:'Synchronisiere …'};
+const SYNCTXT={ok:'Mit dem Server synchronisiert',off:'Server gerade nicht erreichbar – Änderungen werden übertragen, sobald er wieder da ist',local:'Nur auf diesem Gerät gespeichert',auth:'Passwort für den Server nötig',login:'Anmeldung abgelaufen – zum Neu-Anmelden hier tippen',busy:'Synchronisiere …'};
 function fmtDate(t){try{return new Date(t).toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'2-digit'});}catch(e){return '';}}
 
 /* ---------- Bibliothek (Ordner, Papierkorb) ---------- */
@@ -825,9 +825,10 @@ $('#sheet').addEventListener('drop',e=>{const t=e.target.closest('[data-drop]');
 /* ---------- Server-Sync (wenn die App auf dem eigenen Server läuft) ---------- */
 const SY={st:'local',t:0,busy:false,again:false,asked:false};let SERVER=false;
 function setSync(st){SY.st=st;const d=$('#syncDot');if(d){d.className='sync '+st;d.title=SYNCTXT[st];}}
-$('#syncDot').onclick=()=>toast(SYNCTXT[SY.st]);
+$('#syncDot').onclick=()=>{if(SY.st==='login'){location.reload();return;}toast(SYNCTXT[SY.st]);};
 async function api(path,o){const h={'Content-Type':'application/json'};const t=LS.get('dn.token');if(t)h['X-Token']=t;
- const r=await fetch('api/'+path,Object.assign({cache:'no-store'},o||{},{headers:h}));
+ const r=await fetch('api/'+path,Object.assign({cache:'no-store',redirect:'manual',credentials:'same-origin'},o||{},{headers:h}));
+ if(r.type==='opaqueredirect'||(r.status>=300&&r.status<400))throw {login:true};
  if(r.status===401)throw {auth:true};if(!r.ok)throw {status:r.status};return r.json();}
 function scheduleSync(d){if(!SERVER)return;clearTimeout(SY.t);SY.t=setTimeout(sync,d||1200);}
 async function sync(){if(!SERVER)return;if(SY.busy){SY.again=true;return;}SY.busy=true;
@@ -839,7 +840,7 @@ async function sync(){if(!SERVER)return;if(SY.busy){SY.again=true;return;}SY.bus
   if(curChanged){const c=LIB[song.id];if(c.deleted||c.trashed)openFirst();else if(validSong(c)){const ks=sel;song=normalize(JSON.parse(JSON.stringify(c)));lastSig=sig(song);sel=Math.min(ks,song.measures.length-1);if(!P.on)renderAll();}}
   if(!LIB[song.id]&&liveSongs().length)openFirst();
   setSync('ok');if(LV.open)libDialog();}
- catch(e){if(e&&e.auth){setSync('auth');askToken();}else setSync('off');}
+ catch(e){if(e&&e.auth){setSync('auth');askToken();}else if(e&&e.login)setSync('login');else setSync('off');}
  finally{SY.busy=false;if(SY.again){SY.again=false;scheduleSync(300);}}}
 function askToken(){if(SY.asked)return;SY.asked=true;openModal(`<h2>Passwort für Drum Notes</h2><p class="muted">Der Server ist mit einem Passwort geschützt. Es wird nur auf diesem Gerät gespeichert.</p><label class="fld"><span>Passwort</span><input id="tok" type="password" autocomplete="current-password"></label><div class="row" style="margin-top:12px"><button class="btn pri" data-a="tokenGo">Verbinden</button><button class="btn" data-a="close">Später</button></div>`);}
 async function initServer(){
@@ -848,7 +849,7 @@ async function initServer(){
  try{const p=await api('ping');if(!p||!p.ok)throw 0;SERVER=true;LS.set('dn.server',true);
   if(p.auth&&!p.authorized){setSync('auth');askToken();return;}
   setSync('busy');await sync();}
- catch(e){if(LS.get('dn.server')){SERVER=true;setSync('off');}else{setSync('local');return;}}
+ catch(e){if(e&&e.login){SERVER=true;setSync('login');}else if(LS.get('dn.server')){SERVER=true;setSync('off');}else{setSync('local');return;}}
  setInterval(()=>{if(document.visibilityState==='visible')sync();},30000);
  addEventListener('online',()=>sync());
  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')sync();});

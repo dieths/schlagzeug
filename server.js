@@ -13,6 +13,12 @@ const PUB = path.join(__dirname, 'public');
 const SONGS = path.join(DATA, 'songs');
 const ID = /^[A-Za-z0-9-]{1,64}$/;
 const MAX_BODY = 2 * 1024 * 1024;
+const SEC = {
+  'X-Content-Type-Options': 'nosniff',
+  'X-Frame-Options': 'DENY',
+  'Referrer-Policy': 'no-referrer',
+  'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
+};
 
 fs.mkdirSync(SONGS, { recursive: true });
 
@@ -27,7 +33,7 @@ const MIME = {
 };
 
 function send(res, code, body, type = 'application/json; charset=utf-8') {
-  res.writeHead(code, { 'Content-Type': type, 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' });
+  res.writeHead(code, { 'Content-Type': type, 'Cache-Control': 'no-store', ...SEC });
   res.end(typeof body === 'string' || Buffer.isBuffer(body) ? body : JSON.stringify(body));
 }
 
@@ -106,7 +112,7 @@ function serveStatic(req, res, p) {
     res.writeHead(200, {
       'Content-Type': MIME[ext] || 'application/octet-stream',
       'Cache-Control': fresh ? 'no-cache' : 'public, max-age=604800',
-      'X-Content-Type-Options': 'nosniff',
+      ...SEC,
     });
     res.end(req.method === 'HEAD' ? undefined : data);
   });

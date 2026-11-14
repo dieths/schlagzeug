@@ -4,13 +4,40 @@ services:
     image: drum-notes:latest
     container_name: drum-notes
     restart: unless-stopped
+    # Standard: nur vom Server selbst erreichbar. Für Zugriff im Heimnetz HOST_BIND=0.0.0.0 in .env setzen.
     ports:
-      - "${HOST_PORT:-8085}:8080"
+      - "${HOST_BIND:-127.0.0.1}:${HOST_PORT:-8085}:8080"
     environment:
-      # Leer lassen = kein Passwort (z. B. wenn nur über Heimnetz/WireGuard erreichbar)
+      # Leer lassen, wenn Cloudflare Access davor sitzt (doppelte Anmeldung ist unnötig)
       - APP_PASSWORD=${APP_PASSWORD:-}
     volumes:
       - drum-notes-data:/data
+    networks: [drum-notes]
+    # Härtung
+    read_only: true
+    tmpfs: [/tmp]
+    security_opt: ["no-new-privileges:true"]
+    cap_drop: [ALL]
+    mem_limit: 256m
+    pids_limit: 100
+
+  # Cloudflare Tunnel – nur mit: docker compose --profile tunnel up -d
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: drum-notes-tunnel
+    profiles: [tunnel]
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    environment:
+      - TUNNEL_TOKEN=${TUNNEL_TOKEN:-}
+    networks: [drum-notes]
+    depends_on: [drum-notes]
+    read_only: true
+    security_opt: ["no-new-privileges:true"]
+    cap_drop: [ALL]
+
+networks:
+  drum-notes:
 
 volumes:
   drum-notes-data:
