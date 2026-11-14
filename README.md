@@ -50,6 +50,13 @@ Kein Port am Router öffnen: Der Tunnel baut die Verbindung von innen zu Cloudfl
 
 `APP_PASSWORD` in `.env` dann leer lassen – Cloudflare Access übernimmt die Anmeldung.
 
+**Damit die App installierbar bleibt** (Android „App installieren“, iPhone-Icon): Chrome lädt Manifest und Icons teils ohne Anmelde-Cookie. Lege deshalb in Cloudflare Access eine zweite Self-hosted-Anwendung mit Policy-Aktion **Bypass** (Include: *Everyone*) für genau diese Pfade an. Sie enthalten keine Daten, nur das App-Symbol und den Namen:
+
+- `drums.deinedomain.de/manifest.webmanifest`
+- `drums.deinedomain.de/icon-192.png`
+- `drums.deinedomain.de/icon-512.png`
+- `drums.deinedomain.de/apple-touch-icon.png`
+
 ### 3. Starten und testen
 
 ```sh
