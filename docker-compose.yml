@@ -1,0 +1,16 @@
+services:
+  drum-notes:
+    build: .
+    image: drum-notes:latest
+    container_name: drum-notes
+    restart: unless-stopped
+    ports:
+      - "${HOST_PORT:-8085}:8080"
+    environment:
+      # Leer lassen = kein Passwort (z. B. wenn nur über Heimnetz/WireGuard erreichbar)
+      - APP_PASSWORD=${APP_PASSWORD:-}
+    volumes:
+      - drum-notes-data:/data
+
+volumes:
+  drum-notes-data:
