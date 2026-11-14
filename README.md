@@ -12,15 +12,16 @@ Läuft als Docker-Container auf dem eigenen Server. Die Songs liegen zentral auf
 ## Installation auf dem Server
 
 ```sh
-git clone https://github.com/dieths/schlagzeug.git
-cd schlagzeug
-cp .env.example .env
-nano .env                      # Werte eintragen (siehe unten)
-docker compose --profile tunnel up -d --build   # mit Cloudflare Tunnel
-# oder ohne Tunnel:  docker compose up -d --build
+sudo git clone https://github.com/dieths/schlagzeug.git /opt/schlagzeug
+cd /opt/schlagzeug
+sudo cp .env.example .env
+sudo chmod 600 .env            # enthält den Tunnel-Token
+sudo nano .env                 # Werte eintragen (siehe unten)
+sudo docker compose --profile tunnel up -d --build   # mit Cloudflare Tunnel
+# oder ohne Tunnel:  sudo docker compose up -d --build
 ```
 
-**Privates Repository?** Dann braucht der Server Lesezugriff, z. B. per Deploy-Key (GitHub → Repo → Settings → Deploy keys) und `git clone git@github.com:dieths/schlagzeug.git`.
+Das Repository ist öffentlich und enthält keine Geheimnisse – Token, Passwort und Songs liegen nur auf dem Server (`.env` und Docker-Volume), nie im Repository.
 
 Der Container ist gehärtet: läuft ohne Root, mit schreibgeschütztem Dateisystem (nur das Daten-Volume ist beschreibbar), ohne Linux-Capabilities und mit Speicherlimit. Standardmäßig ist der Port nur auf `127.0.0.1` gebunden, also von außen nicht erreichbar.
 
@@ -73,7 +74,7 @@ Die App funktioniert dank Offline-Modus auch ohne Verbindung, Änderungen werden
 Neue Versionen landen hier im Repository. Auf dem Server:
 
 ```sh
-./update.sh
+cd /opt/schlagzeug && sudo ./update.sh
 ```
 
 Das holt den neuen Stand (`git pull`) und baut den Container neu (mit Tunnel, wenn `TUNNEL_TOKEN` gesetzt ist). Die Songs bleiben im Volume erhalten. Die Geräte laden die neue Version beim nächsten Öffnen mit Netz.
