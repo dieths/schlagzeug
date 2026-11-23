@@ -2,6 +2,8 @@
 
 Web-App zum Schreiben und Üben von Schlagzeugnoten – mit Metronom, Taktwechseln, gemischten Unterteilungen (Triolen, Quintolen, Sextolen, geteilte Schläge), Flams/Drags/Buzz, Sticking, automatischem Handsatz, Faulenzern (1 und 2 Takte), Wiederholungszeichen mit 1./2. Klammer, markierten Taktnummern, Abschnitts-Beschriftungen, Bereichsauswahl mit Kopieren/Einfügen, Swing, Aufnahme über E-Drum (MIDI) sowie Export als PDF-Notenblatt (mit Mehrtaktpausen und einstellbarer Größe), MIDI und MusicXML.
 
+📖 **[Anleitung für Benutzer](docs/ANLEITUNG.md)** – alle Funktionen Schritt für Schritt.
+
 Läuft als Docker-Container auf dem eigenen Server. Die Songs liegen zentral auf dem Server, jedes Gerät hat eine Offline-Kopie:
 
 - **Offline:** Die App ist eine PWA. Einmal geöffnet, startet sie auch ohne Netz. Änderungen werden lokal gespeichert und automatisch übertragen, sobald der Server wieder erreichbar ist.
