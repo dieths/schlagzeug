@@ -6,6 +6,7 @@
 <title>Drum Notes – Schlagzeugnoten üben</title>
 <link rel="manifest" href="manifest.webmanifest" crossorigin="use-credentials">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-192.png">
 <meta name="theme-color" content="#d9480f">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -189,6 +190,10 @@ label.fld{display:block;margin-top:10px}label.fld span{display:block;font-size:1
     <h3 style="margin-top:14px">Lautstärke</h3>
     <div class="row"><span class="muted" style="width:80px">Drums</span><input type="range" id="vD" min="0" max="1" step="0.05"></div>
     <div class="row"><span class="muted" style="width:80px">Metronom</span><input type="range" id="vC" min="0" max="1" step="0.05"></div>
+    <h3 style="margin-top:14px">Klang</h3>
+    <div class="row"><select id="sSound"><option value="kit">Echtes Drumset (Aufnahmen)</option><option value="synth">Synthesizer (klein, ohne Download)</option></select><span class="muted" id="kitState"></span></div>
+    <div class="row"><span class="muted" style="width:80px">Raumklang</span><input type="range" id="vR" min="0" max="0.6" step="0.05"></div>
+    <p class="muted" style="margin:6px 0 0">Aufnahmen: Versilian Community Sample Library (VCSL), CC0.</p>
     <p class="muted" style="margin:10px 0 0">Tempo bezieht sich immer auf Viertel (♩). Bei x/8-Takten klickt das Metronom auf jede Achtel und betont den Anfang jeder Gruppe. Am iPhone den Lautlos-Schalter ausschalten, sonst bleibt es stumm.</p>
   </details>
 </div>
@@ -652,18 +657,54 @@ $('#bML').onclick=()=>move(-1);$('#bMR').onclick=()=>move(1);
 $('#name').onchange=()=>{song.name=$('#name').value.trim()||'Ohne Titel';persist();};
 
 /* ---------- Audio ---------- */
-let ac,master,clickBus,noiseBuf,openHH=null;
+let ac,master,clickBus,noiseBuf,openHH=null,drumBus,revSend,revGain;
 function initAudio(){
  if(!ac){const AC=window.AudioContext||window.webkitAudioContext;ac=new AC();
-  master=ac.createGain();master.connect(ac.destination);clickBus=ac.createGain();clickBus.connect(ac.destination);
+  master=ac.createGain();try{const lim=ac.createDynamicsCompressor();lim.threshold.value=-8;lim.knee.value=6;lim.ratio.value=6;lim.attack.value=0.002;lim.release.value=0.12;master.connect(lim);lim.connect(ac.destination);}catch(e){master.connect(ac.destination);}clickBus=ac.createGain();clickBus.connect(ac.destination);
+  // Drum-Bus mit leichtem Raumklang (künstliche Impulsantwort)
+  drumBus=ac.createGain();drumBus.connect(master);
+  try{const conv=ac.createConvolver();const len=Math.floor(ac.sampleRate*0.9);const ir=ac.createBuffer(2,len,ac.sampleRate);
+   for(let c=0;c<2;c++){const d=ir.getChannelData(c);for(let i=0;i<len;i++){const tt=i/ac.sampleRate;d[i]=(Math.random()*2-1)*Math.exp(-tt*7)*(tt<0.012?tt/0.012:1);}}
+   conv.buffer=ir;revSend=ac.createGain();revGain=ac.createGain();drumBus.connect(revSend);revSend.connect(conv);conv.connect(revGain);revGain.connect(master);}catch(e){}
   noiseBuf=ac.createBuffer(1,ac.sampleRate*2,ac.sampleRate);const d=noiseBuf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;}
- master.gain.value=opt.vD;clickBus.gain.value=opt.vC;
- if(ac.state==='suspended')ac.resume().catch(()=>{});}
+ master.gain.value=opt.vD;clickBus.gain.value=opt.vC;if(revSend)revSend.gain.value=opt.vR==null?0.2:opt.vR;
+ if(ac.state==='suspended')ac.resume().catch(()=>{});
+ if(opt.sound!=='synth')loadKit();}
+/* ---------- Echtes Drumset (Samples) ---------- */
+const KITFILES={bd:['s1','s2','n1','n2','a1','a2'],sn:['s1','s2','n1','n2','a1','a2'],hh:['s1','s2','n1','n2','a1','a2'],ho:['n1','n2'],hf:['n1','n2'],t1:['s1','n1','n2','a1'],t2:['s1','n1','n2','a1'],rd:['n1','a1','b1'],cr:['n1','a1']};
+const KIT={ready:false,loading:null,buf:{},rr:{}};
+function setKitState(t){const e=$('#kitState');if(e)e.textContent=t;}
+function loadKit(){if(KIT.ready||KIT.loading)return KIT.loading;setKitState('lädt …');
+ const jobs=[];for(const g in KITFILES)KITFILES[g].forEach(k=>{const name=g+'_'+k;
+  jobs.push(fetch('samples/'+name+'.wav').then(r=>{if(!r.ok)throw new Error(r.status);return r.arrayBuffer();})
+   .then(b=>new Promise((ok,no)=>{const pr=ac.decodeAudioData(b,ok,no);if(pr&&pr.then)pr.then(ok,no);}))
+   .then(d=>{KIT.buf[name]=d;}));});
+ KIT.loading=Promise.all(jobs).then(()=>{KIT.ready=true;setKitState('');}).catch(e=>{KIT.loading=null;setKitState('Aufnahmen nicht verfügbar – Synthesizer aktiv');console.warn('Kit',e);});
+ return KIT.loading;}
+function pickBuf(g,layer){const ks=KITFILES[g].filter(k=>k[0]===layer);const list=ks.length?ks:KITFILES[g].filter(k=>k[0]==='n');
+ const key=g+layer;KIT.rr[key]=((KIT.rr[key]||0)+1)%list.length;return KIT.buf[g+'_'+list[KIT.rr[key]]];}
+function sampleHit(g,layer,t,gain,rate,isOpen){const b=pickBuf(g,layer);if(!b)return null;
+ const src=ac.createBufferSource();src.buffer=b;src.playbackRate.value=(rate||1)*(1+(Math.random()-0.5)*0.012);
+ const gn=ac.createGain();gn.gain.value=gain*(1+(Math.random()-0.5)*0.12);src.connect(gn);gn.connect(drumBus);src.start(Math.max(t,ac.currentTime));
+ if(isOpen){choke(t);openHH=gn;}return gn;}
+function kitHit(id,lab,t){
+ const layer=lab==='>'?'a':(lab==='( )'||lab==='g'||lab==='b')?'s':'n';
+ const g=lab==='( )'?1.5:lab==='g'?1.2:lab==='b'?0.9:1;
+ switch(id){
+  case 'BD':sampleHit('bd',layer,t,g);break;
+  case 'SN':sampleHit('sn',layer,t,g);break;
+  case 'HH':if(lab==='o'){sampleHit('ho','n',t,1,1,true);}else{choke(t);sampleHit('hh',layer,t,g);}break;
+  case 'HF':choke(t);sampleHit('hf','n',t,1);break;
+  case 'RD':sampleHit('rd',lab==='>'?'b':'n',t,lab==='>'?1.1:1);break;
+  case 'CR':sampleHit('cr',layer==='a'?'a':'n',t,1);break;
+  case 'T1':sampleHit('t1',layer,t,g);break;
+  case 'T2':sampleHit('t2',layer,t,g);break;
+  case 'FT':sampleHit('t2',layer,t,g*1.1,0.74);break;}}
 function env(g,t,p,dec){g.gain.setValueAtTime(Math.max(p,0.0002),t);g.gain.exponentialRampToValueAtTime(0.0002,t+dec);}
 function noise(t,dec,p,type,freq,q){const s=ac.createBufferSource();s.buffer=noiseBuf;const f=ac.createBiquadFilter();f.type=type;f.frequency.value=freq;if(q)f.Q.value=q;const g=ac.createGain();env(g,t,p,dec);s.connect(f);f.connect(g);g.connect(master);s.start(t,Math.random()*1.5);s.stop(t+dec+0.05);return g;}
 function tone(t,f0,f1,dec,p,type,dest){const o=ac.createOscillator();o.type=type||'sine';o.frequency.setValueAtTime(f0,t);if(f1!==f0)o.frequency.exponentialRampToValueAtTime(f1,t+dec*0.5);const g=ac.createGain();env(g,t,p,dec);o.connect(g);g.connect(dest||master);o.start(t);o.stop(t+dec+0.05);}
 function choke(t){if(openHH){try{openHH.gain.cancelScheduledValues(t);openHH.gain.setTargetAtTime(0.0001,t,0.012);}catch(e){}openHH=null;}}
-function hit(id,lab,t){t=Math.max(t,ac.currentTime);const v=lab==='>'?1:lab==='( )'?0.2:lab==='g'?0.3:lab==='b'?0.34:0.68;
+function hit(id,lab,t){t=Math.max(t,ac.currentTime);if(opt.sound!=='synth'&&KIT.ready){kitHit(id,lab,t);return;}const v=lab==='>'?1:lab==='( )'?0.2:lab==='g'?0.3:lab==='b'?0.34:0.68;
  switch(id){
   case 'BD':tone(t,150,48,0.38,1.25*(lab==='>'?1.1:0.9));tone(t,1800,900,0.012,0.25,'triangle');break;
   case 'SN':noise(t,lab==='b'?0.09:0.17,0.85*v,'highpass',1300);if(lab!=='b')tone(t,250,175,0.09,0.55*v,'triangle');break;
@@ -688,7 +729,7 @@ let wakeLock=null;
 function range(){const L=song.measures.length;if(opt.mode==='sel')return [sel,sel];
  if(opt.mode==='range'){let a=Math.max(1,Math.min(L,opt.from|0))-1,b=Math.max(1,Math.min(L,opt.to|0))-1;if(b<a)[a,b]=[b,a];return [a,b];}
  return [0,L-1];}
-function start(){initAudio();const [a]=range();Object.assign(P,{on:true,mi:a,step:0,passes:0,stopAt:0,q:[],last:null,t:ac.currentTime+0.12});
+async function start(){initAudio();if(opt.sound!=='synth'&&!KIT.ready){$('#status').textContent='Drumset lädt …';await Promise.race([loadKit(),new Promise(r=>setTimeout(r,6000))]);$('#status').textContent='';if(P.on)return;}const [a]=range();Object.assign(P,{on:true,mi:a,step:0,passes:0,stopAt:0,q:[],last:null,t:ac.currentTime+0.12});
  P.ci=opt.countIn?{m:srcOf(song.measures,a)||song.measures[a],b:0}:null;
  $('#play').textContent='■';$('#play').setAttribute('aria-label','Stopp');
  try{navigator.wakeLock&&navigator.wakeLock.request('screen').then(w=>wakeLock=w).catch(()=>{});}catch(e){}
@@ -747,7 +788,7 @@ $('#tDrums').onclick=()=>{opt.drums=!opt.drums;syncToggles();persist();toast(opt
 function bindOpt(){
  $('#sMode').value=opt.mode;$('#rFrom').value=opt.from;$('#rTo').value=opt.to;$('#rangeBox').style.display=opt.mode==='range'?'':'none';
  $('#cLoop').checked=opt.loop;$('#cCount').checked=opt.countIn;$('#cFollow').checked=opt.follow;$('#cTr').checked=opt.tr;
- $('#trStep').value=opt.trStep;$('#trEvery').value=opt.trEvery;$('#trMax').value=opt.trMax;$('#vD').value=opt.vD;$('#vC').value=opt.vC;syncToggles();}
+ $('#trStep').value=opt.trStep;$('#trEvery').value=opt.trEvery;$('#trMax').value=opt.trMax;$('#vD').value=opt.vD;$('#vC').value=opt.vC;$('#vR').value=opt.vR==null?0.2:opt.vR;$('#sSound').value=opt.sound||'kit';syncToggles();}
 $('#sMode').onchange=()=>{opt.mode=$('#sMode').value;$('#rangeBox').style.display=opt.mode==='range'?'':'none';if(opt.mode==='range'){opt.from=sel+1;opt.to=Math.min(song.measures.length,sel+2);bindOpt();}persist();};
 $('#rFrom').onchange=()=>{opt.from=+$('#rFrom').value||1;persist();};$('#rTo').onchange=()=>{opt.to=+$('#rTo').value||1;persist();};
 $('#cLoop').onchange=e=>{opt.loop=e.target.checked;persist();};$('#cCount').onchange=e=>{opt.countIn=e.target.checked;persist();};
@@ -756,6 +797,8 @@ $('#trStep').onchange=e=>{opt.trStep=Math.max(1,+e.target.value||5);persist();};
 $('#trMax').onchange=e=>{opt.trMax=Math.max(30,Math.min(300,+e.target.value||160));persist();};
 $('#vD').oninput=e=>{opt.vD=+e.target.value;if(master)master.gain.value=opt.vD;persist();};
 $('#vC').oninput=e=>{opt.vC=+e.target.value;if(clickBus)clickBus.gain.value=opt.vC;persist();};
+$('#vR').oninput=e=>{opt.vR=+e.target.value;if(revSend)revSend.gain.value=opt.vR;persist();};
+$('#sSound').onchange=e=>{opt.sound=e.target.value;persist();if(ac&&opt.sound!=='synth')loadKit();};
 
 /* ---------- Songs-Dialog ---------- */
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));

@@ -30,6 +30,7 @@ const MIME = {
   '.png': 'image/png',
   '.svg': 'image/svg+xml',
   '.ico': 'image/x-icon',
+  '.wav': 'audio/wav',
 };
 
 function send(res, code, body, type = 'application/json; charset=utf-8') {

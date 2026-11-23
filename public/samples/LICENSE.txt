@@ -1,0 +1,5 @@
+Drum-Samples aus der Versilian Community Sample Library (VCSL)
+https://github.com/sgossner/VCSL – Lizenz: CC0 1.0 Universal (gemeinfrei)
+
+Für Drum Notes zugeschnitten (Einsatz exakt am Anfang, Ausklang gekürzt),
+auf Mono 32 kHz / 16 Bit gewandelt und in der Lautstärke angeglichen.

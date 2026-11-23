@@ -97,12 +97,17 @@ docker run --rm -v schlagzeug_drum-notes-data:/data -v "$PWD":/backup alpine \
 
 (Den genauen Volume-Namen zeigt `docker volume ls`.)
 
+## Klang
+
+Das Drumset besteht aus echten Aufnahmen aus der [Versilian Community Sample Library](https://github.com/sgossner/VCSL) (CC0, gemeinfrei) mit mehreren Lautstärkestufen und wechselnden Aufnahmen pro Schlag. In den Einstellungen lässt sich auf den eingebauten Synthesizer umschalten und der Raumklang regeln.
+
 ## Aufbau
 
 | Datei | Zweck |
 |---|---|
 | `public/index.html` | Die komplette App (eine Datei) |
 | `public/sw.js` | Service Worker für den Offline-Betrieb |
+| `public/samples/` | Drum-Aufnahmen (WAV, CC0) |
 | `server.js` | Kleiner Node-Server ohne Abhängigkeiten: liefert die App aus, API `/api/songs` |
 | `Dockerfile`, `docker-compose.yml` | Container |
 | `update.sh` | Update vom Repository ziehen und neu bauen |
