@@ -87,11 +87,21 @@ Erst ein Werkzeug wählen, dann in die Noten tippen. Ein zweiter Tipp an dieselb
 | ● **Schlag** | normaler Schlag setzen/entfernen | alle |
 | **> Akzent** | Akzent | alle außer HH-Fuß |
 | **( ) Ghost** | Ghost-Note (leise, in Klammern) | Snare, Toms |
-| **Flam** | Vorschlag mit einer Note | Snare, Toms |
-| **Drag** | Vorschlag mit zwei Noten | Snare, Toms |
+| **Flam** | Vorschlag mit einer Note | Snare, Toms, Hi-Hat, Ride, Crash |
+| **Drag** | Vorschlag mit zwei Noten | Snare, Toms, Hi-Hat, Ride, Crash |
 | **z Buzz-Wirbel** | Presswirbel (z am Notenhals) | Snare, Toms |
 | **o Hi-Hat offen** | offene Hi-Hat (o über der Note) | Hi-Hat |
+| **𝅗𝅥 Lang** | Note klingt bis zum nächsten Schlag dieser Stimme: halbe, punktierte halbe oder ganze Note statt Note + Pausen | alle |
+| **‿ Haltebogen** | Bindet die Note an den nächsten Schlag desselben Instruments, auch über den Taktstrich; die gebundene Note wird nicht neu angeschlagen | alle |
 | **⌫ Löschen** | Note an dieser Stelle entfernen | alle |
+
+**Lange Noten und Haltebögen – Beispiele**
+
+- **Crash ausklingen lassen:** Crash auf die Eins setzen, Werkzeug **Lang** antippen und auf die Note tippen. Steht im Takt sonst nichts in der oberen Stimme, wird daraus eine ganze Note.
+- **Halbe Noten:** Schläge auf 1 und 3 setzen, beide mit **Lang** markieren.
+- **Wirbel über mehrere Takte:** Buzz-Wirbel auf die Eins, mit **Lang** zur ganzen Note machen, mit **Haltebogen** an den Schlag im nächsten Takt binden. Der Wirbel klingt durch, der gebundene Schlag wird nicht neu angeschlagen.
+
+Lange Noten gehen immer bis zum nächsten Schlag derselben Stimme (Hände bzw. Füße), höchstens bis zum Taktende.
 
 ### 2.5 Direkt in die Noten tippen
 
@@ -227,11 +237,17 @@ Beides wird im PDF immer gedruckt, auch wenn die übrigen Taktnummern ausgeblend
 
 Während der Wiedergabe läuft eine Markierung durch die Noten. Die Statuszeile zeigt Takt und Durchlauf.
 
+**Ab einem bestimmten Takt abspielen**
+
+- **▶ ab hier** im Editor (neben der Taktnummer) spielt ab dem gewählten Takt bis zum Ende – Wiederholungen ab dieser Stelle werden berücksichtigt.
+- Am Rechner: **Doppelklick** auf einen Takt in der Notenansicht.
+- Dauerhaft: unter *Üben & Einstellungen → Abspielen* **Ab ausgewähltem Takt** wählen; dann startet auch ▶ unten immer beim gewählten Takt.
+
 ### 4.2 Üben & Einstellungen
 
 | Einstellung | Wirkung |
 |---|---|
-| **Abspielen** | *Ganzer Song* (mit Wiederholungen), *Nur aktueller Takt* oder *Takt-Bereich* von–bis |
+| **Abspielen** | *Ganzer Song* (mit Wiederholungen), *Ab ausgewähltem Takt*, *Nur aktueller Takt* oder *Takt-Bereich* von–bis |
 | **Endlos wiederholen** | Schleife statt Stopp am Ende |
 | **1 Takt einzählen** | Metronom zählt einen Takt vor |
 | **Editor läuft mit** | Der Editor springt zum gerade gespielten Takt |
@@ -441,6 +457,7 @@ docker run --rm -v schlagzeug_drum-notes-data:/data -v "$PWD":/backup alpine \
 
 | Ziel | Schritte |
 |---|---|
+| Nur den Refrain anhören | Ersten Refrain-Takt wählen → **▶ ab hier** |
 | Neuen Groove schreiben | 📁 Songs → ＋ Song → Leeres Blatt → Raster wählen → Werkzeug Schlag → in die Noten tippen |
 | Fill aus 16tel-Triolen | Takt wählen → Raster pro Schlag auf Tri bzw. Sext → Snare/Toms setzen → ✋ Handsatz → Wechselschlag |
 | Chorus wiederholen | Erster Takt 𝄆 Anfang → letzter Takt 𝄇 Ende (2×) |
