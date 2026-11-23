@@ -1,6 +1,6 @@
 # Drum Notes 🥁
 
-Web-App zum Schreiben und Üben von Schlagzeugnoten – mit Metronom, Taktwechseln, gemischten Unterteilungen (Triolen, Quintolen, Sextolen, geteilte Schläge), Flams/Drags/Buzz, Sticking, automatischem Handsatz und PDF-Notenblatt.
+Web-App zum Schreiben und Üben von Schlagzeugnoten – mit Metronom, Taktwechseln, gemischten Unterteilungen (Triolen, Quintolen, Sextolen, geteilte Schläge), Flams/Drags/Buzz, Sticking, automatischem Handsatz, Faulenzern (1 und 2 Takte), markierten Taktnummern, Abschnitts-Beschriftungen und PDF-Notenblatt mit einstellbarer Notengröße.
 
 Läuft als Docker-Container auf dem eigenen Server. Die Songs liegen zentral auf dem Server, jedes Gerät hat eine Offline-Kopie:
 
