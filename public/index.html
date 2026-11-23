@@ -163,6 +163,11 @@ label.fld{display:block;margin-top:10px}label.fld span{display:block;font-size:1
     <select id="sVo" aria-label="Klammer"><option value="0">Klammer: –</option><option value="1">1. Klammer</option><option value="2">2. Klammer</option><option value="3">3. Klammer</option></select>
   </div>
   <div class="row">
+    <span class="muted">Tempo ab hier</span>
+    <input type="number" id="mTempo" min="30" max="300" inputmode="numeric" placeholder="–" style="width:72px">
+    <select id="mRamp" aria-label="Übergang"><option value="0">sofort</option><option value="1">allmählich über 1 Takt</option><option value="2">allmählich über 2 Takte</option><option value="4">allmählich über 4 Takte</option><option value="8">allmählich über 8 Takte</option></select>
+  </div>
+  <div class="row">
     <input id="mLabel" class="minp" placeholder="Beschriftung, z. B. Intro, Teil B, Song 2" maxlength="80" aria-label="Beschriftung des Takts">
   </div>
   <div class="row" style="margin-top:12px">
@@ -295,7 +300,7 @@ function fixRepeats(ms){ms=ms||song.measures;
   if(!m.rep)delete m.rep;});
  ms.forEach((m,i)=>{if(!repOff(m))return;const src=srcOf(ms,i);if(!src){delete m.rep;return;}
   if(!sameShape(m,src)){const r=keepMarks(m,mk(src.num,src.den,src.subs.map(x=>Array.isArray(x)?x.slice():x)));ms[i]=r;}});}
-function keepMarks(m,m2){['rep','box','label','repStart','repEnd','volta'].forEach(k=>{if(m[k])m2[k]=m[k];});return m2;}
+function keepMarks(m,m2){['rep','box','label','repStart','repEnd','volta','tempo'].forEach(k=>{if(m[k])m2[k]=m[k];});return m2;}
 function resampleTo(m,num,den,sub){const m2=keepMarks(m,mk(num,den,sub));const inf=info(m);
  inf.forEach((it,i)=>{const j=idxAt(m2,it.t);if(j<0)return;
   INST.forEach(x=>{const s=m.notes[x.id][i];if(s&&!m2.notes[x.id][j]){m2.notes[x.id][j]=s;m2.orn[x.id][j]=m.orn[x.id][i]||0;}});
@@ -358,7 +363,8 @@ function normalize(s){s.name=s.name||'Ohne Titel';s.id=typeof s.id==='string'&&/
   INST.forEach(x=>{const a=m.notes[x.id]||[],o=(m.orn&&m.orn[x.id])||[];for(let i=0;i<n;i++){r.notes[x.id][i]=Math.min(x.st.length-1,Math.max(0,a[i]|0));r.orn[x.id][i]=x.orn&&r.notes[x.id][i]?Math.min(3,Math.max(0,o[i]|0)):0;}});
   const st=m.stick||[];for(let i=0;i<n;i++)r.stick[i]=Math.min(2,Math.max(0,st[i]|0));
   if([1,2,-2].includes(m.rep))r.rep=m.rep;if(m.box)r.box=true;if(m.label)r.label=String(m.label).slice(0,80);
-  if(m.repStart)r.repStart=true;if(m.repEnd)r.repEnd=Math.max(2,Math.min(9,m.repEnd|0));if(m.volta)r.volta=Math.max(1,Math.min(4,m.volta|0));return r;});
+  if(m.repStart)r.repStart=true;if(m.repEnd)r.repEnd=Math.max(2,Math.min(9,m.repEnd|0));if(m.volta)r.volta=Math.max(1,Math.min(4,m.volta|0));
+  if(m.tempo&&+m.tempo.r>0)r.tempo={r:Math.max(0.1,Math.min(10,+m.tempo.r)),ramp:Math.max(0,Math.min(16,m.tempo.ramp|0))};return r;});
  fixRepeats(s.measures);
  return s;}
 let LIB={},lastSig='';
@@ -491,7 +497,7 @@ function notationRows(W,mode,ms,o){ms=ms||song.measures;o=o||{};const print=mode
   let f=(W-4-leadSum)/bodySum;if(ri===rows.length-1&&rows.length>1&&(o.perLine?row.length<o.perLine:leadSum+bodySum<0.6*W))f=Math.min(f,o.perLine&&lastF?lastF:1.2);
   if(!print&&!edit&&rows.length===1&&row.length===1)f=Math.min(f,1.6);
   f=Math.max(f,edit?0.7:o.perLine?0.5:0.85);lastF=f;
-  const hasVol=!edit&&row.some(it=>it.m.volta);const T=(!edit&&row.some(it=>it.m.box||it.m.label)?22:0)+(hasVol?20:0);
+  const hasVol=!edit&&row.some(it=>it.m.volta);const T=(!edit&&row.some(it=>it.m.box||it.m.label||it.m.tempo||rampAt(it.mi))?22:0)+(hasVol?20:0);
   const RW=Math.ceil(leadSum+bodySum*f+4);
   const v2=row.some(it=>INST.some(q=>q.v===2&&it.m.notes[q.id].some(Boolean)));
   const stOn=!(print&&song.meta&&song.meta.stick===false)&&row.some(it=>it.m.stick.some(Boolean));
@@ -516,7 +522,11 @@ function notationRows(W,mode,ms,o){ms=ms||song.measures;o=o||{};const print=mode
    const nx=mStart+(k===0?20:2);let lx=nx;
    if(!edit&&m.box){const t=String(it.mi+1),bwid=t.length*7.5+9;body+=`<rect x="${nx-2}" y="-20" width="${bwid}" height="17" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.4"/><text x="${nx-2+bwid/2}" y="-7" font-size="12" font-weight="800" text-anchor="middle" fill="currentColor">${t}</text>`;lx=nx+bwid+5;}
    else if(!edit&&(numMode==='all'||(numMode==='line'&&k===0)))body+=`<text x="${nx}" y="14" font-size="10" fill="currentColor" fill-opacity=".5">${it.mi+1}</text>`;
-   if(!edit&&m.label)body+=`<text x="${lx}" y="-7" font-size="13" font-weight="700" font-style="italic" font-family="Georgia,serif" fill="currentColor">${esc(m.label)}</text>`;
+   if(!edit&&m.label){body+=`<text x="${lx}" y="-7" font-size="13" font-weight="700" font-style="italic" font-family="Georgia,serif" fill="currentColor">${esc(m.label)}</text>`;lx+=m.label.length*7.2+10;}
+   if(!edit&&m.tempo){body+=`<text x="${lx}" y="-7" font-size="13" font-weight="700" font-family="Georgia,serif" fill="currentColor"><tspan font-size="18">♩</tspan> = ${tAbs(m)}</text>`;}
+   if(!edit){const ra=rampAt(it.mi);if(ra){const x0=it.mi===ra.start?(m.tempo?lx+70:lx):mStart+(k===0?20:0);
+    if(it.mi===ra.start)body+=`<text x="${x0}" y="-7" font-size="13" font-style="italic" font-family="Georgia,serif" fill="currentColor">${ra.up?'accel.':'rit.'}</text>`;
+    const lx0=it.mi===ra.start?x0+42:x0;body+=`<line x1="${lx0}" x2="${bx+it.body*f}" y1="-11" y2="-11" stroke="currentColor" stroke-width="1" stroke-dasharray="4 4"/>`;}}
    const ex=bx+bw;
    if(!edit&&m.volta){const pv=ms[it.mi-1],nx=ms[it.mi+1];const vs=!(pv&&pv.volta===m.volta)||k===0,ve=!(nx&&nx.volta===m.volta);const vx0=k===0?mStart+18:mStart+2,vx1=ex-4,vy=-T+6;
     body+=`<line x1="${vx0}" x2="${vx1}" y1="${vy}" y2="${vy}" stroke="currentColor" stroke-width="1.2"/>`;
@@ -551,7 +561,7 @@ function renderEditor(){
  $('#sNum').innerHTML=Array.from({length:16},(_,i)=>`<option ${i+1===m.num?'selected':''}>${i+1}</option>`).join('');
  $('#sDen').value=String(m.den);
  const rp=repOff(m);['sNum','sDen','sAll'].forEach(id=>$('#'+id).disabled=!!rp);
- $('#sRep').value=m.rep===1?'1':rp===2?'2':'0';$('#bRS').classList.toggle('on',!!m.repStart);$('#sRE').value=String(m.repEnd||0);$('#sVo').value=String(m.volta||0);$('#bBox').classList.toggle('on',!!m.box);if(document.activeElement!==$('#mLabel'))$('#mLabel').value=m.label||'';
+ $('#sRep').value=m.rep===1?'1':rp===2?'2':'0';$('#bRS').classList.toggle('on',!!m.repStart);$('#sRE').value=String(m.repEnd||0);$('#sVo').value=String(m.volta||0);if(document.activeElement!==$('#mTempo'))$('#mTempo').value=m.tempo?tAbs(m):'';$('#mRamp').value=String(m.tempo?m.tempo.ramp||0:0);$('#mRamp').disabled=!m.tempo;$('#bBox').classList.toggle('on',!!m.box);if(document.activeElement!==$('#mLabel'))$('#mLabel').value=m.label||'';
  const uni=!Array.isArray(m.subs[0])&&m.subs.every(k=>k===m.subs[0]);
  $('#sAll').innerHTML=(uni?'':'<option value="" selected>gemischt</option>')+SUBS[K].map(k=>`<option value="${k}" ${uni&&k===m.subs[0]?'selected':''}>${SUBN[K][k]}</option>`).join('');
  if(rp){const si=srcIndex(song.measures,sel);const g0=$('#grid');g0.style.gridTemplateColumns='1fr';g0.innerHTML=`<p class="muted">Faulenzer-Takt – die Noten kommen aus Takt ${si+1}.</p>`;curCol=-1;renderNoteEditor();return;}
@@ -701,6 +711,8 @@ $('#sRep').onchange=()=>setRep(+$('#sRep').value);
 function markChange(fn){pushUndo();fn(song.measures[sel]);renderNotation();renderEditor();persist();}
 $('#bRS').onclick=()=>markChange(m=>{if(m.repStart)delete m.repStart;else m.repStart=true;});
 $('#sRE').onchange=()=>markChange(m=>{const v=+$('#sRE').value;if(v)m.repEnd=v;else delete m.repEnd;});
+$('#mTempo').onchange=()=>markChange(m=>{const v=Math.round(+$('#mTempo').value);if(v>=30&&v<=300)m.tempo={r:v/song.bpm,ramp:m.tempo?m.tempo.ramp||0:0};else delete m.tempo;});
+$('#mRamp').onchange=()=>markChange(m=>{if(m.tempo)m.tempo.ramp=+$('#mRamp').value;});
 $('#sVo').onchange=()=>markChange(m=>{const v=+$('#sVo').value;if(v)m.volta=v;else delete m.volta;});
 $('#bBox').onclick=()=>{pushUndo();const m=song.measures[sel];if(m.box)delete m.box;else m.box=true;renderNotation();renderEditor();persist();};
 let labelUndo=false;
@@ -784,6 +796,16 @@ function preview(id,s,o){initAudio();playInst(id,s,ac.currentTime+0.08,o,0.3);}
 /* ---------- Abspielen ---------- */
 const P={on:false,mi:0,step:0,t:0,ci:null,passes:0,timer:0,stopAt:0,q:[],last:null,raf:0};
 let wakeLock=null;
+/* Tempoangaben: gespeichert relativ zum Grundtempo (r), damit Tempo-Trainer und ± das ganze Stück mitziehen.
+   ramp n = allmählich über die n Takte davor (accel./rit.). */
+const tAbs=m=>Math.round(song.bpm*m.tempo.r);
+function tempoAt(mi,pos){const ms=song.measures;let cur=song.bpm;
+ for(let k=0;k<ms.length;k++){const t=ms[k].tempo;if(!t)continue;const T=song.bpm*t.r,rs=Math.max(0,k-(t.ramp||0));
+  if(mi>=k){cur=T;continue;}
+  if(t.ramp&&mi>=rs)return cur+(T-cur)*((mi-rs+(pos||0))/(k-rs));
+  break;}
+ return cur;}
+function rampAt(mi){const ms=song.measures;for(let k=mi+1;k<ms.length&&k<=mi+16;k++){const t=ms[k].tempo;if(t){return t.ramp&&mi>=k-t.ramp?{k,start:k-t.ramp,up:song.bpm*t.r>tempoAt(k-t.ramp,0)}:null;}}return null;}
 function expandRepeats(ms){const seq=[];let i=0,start=0,pass=1,jumped=false,g=0;
  while(i<ms.length&&g++<20000){const m=ms[i];
   if(m.repStart&&!jumped){start=i;pass=1;}
@@ -818,11 +840,11 @@ function tick(){
  if(P.stopAt&&ac.currentTime>=P.stopAt){stop();return;}
  P.timer=setTimeout(tick,25);}
 function stepOnce(){
- const q=60/song.bpm;
- if(P.ci){const m=P.ci.m;clickSnd(P.t,clickLevel(m,P.ci.b));P.ci.b++;P.q.push({t:P.t,ci:P.ci.b});P.t+=q*bu(m);if(P.ci.b>=m.subs.length)P.ci=null;return;}
+ let q=60/song.bpm;
+ if(P.ci){q=60/tempoAt(P.mi,0);const m=P.ci.m;clickSnd(P.t,clickLevel(m,P.ci.b));P.ci.b++;P.q.push({t:P.t,ci:P.ci.b});P.t+=q*bu(m);if(P.ci.b>=m.subs.length)P.ci=null;return;}
  if(P.mi>=song.measures.length||P.mi!==P.seq[P.pos]){P.seq=playSeq();P.pos=Math.min(P.pos,P.seq.length-1);P.mi=P.seq[P.pos]||0;}
  const m=srcOf(song.measures,P.mi)||song.measures[P.mi];const inf=getInfo(m);if(P.step>=inf.length)P.step=0;
- const i=P.step,it=inf[i];const dur=q*it.d;const tp=P.t+swingOff(m,it,q*bu(m));
+ const i=P.step,it=inf[i];P.bpmNow=tempoAt(P.mi,it.t/qlen(m));q=60/P.bpmNow;const dur=q*it.d;const tp=P.t+swingOff(m,it,q*bu(m));
  if(opt.drums)INST.forEach(x=>{const s=m.notes[x.id][i];if(s)playInst(x.id,s,tp,m.orn[x.id][i],dur);});
  if(opt.click&&it.j===0)clickSnd(P.t,clickLevel(m,it.b));
  P.q.push({t:tp,mi:P.mi,step:i});
@@ -837,7 +859,7 @@ function stepOnce(){
 function draw(){if(!P.on)return;let cur=null;while(P.q.length&&P.q[0].t<=ac.currentTime+0.005)cur=P.q.shift();
  if(cur){
   if(cur.ci){$('#status').innerHTML=`Einzählen: <b>${cur.ci}</b>`;}
-  else{$('#status').textContent=(MIDI.arm?'● Aufnahme · ':'')+`Takt ${cur.mi+1}`+(opt.tr?` · ♩ ${song.bpm}`:'')+(P.passes?` · Durchlauf ${P.passes+1}`:'');
+  else{$('#status').textContent=(MIDI.arm?'● Aufnahme · ':'')+`Takt ${cur.mi+1}`+(Math.round(P.bpmNow||song.bpm)!==song.bpm||opt.tr?` · ♩ ${Math.round(P.bpmNow||song.bpm)}`:'')+(P.passes?` · Durchlauf ${P.passes+1}`:'');
    if(opt.follow&&cur.mi!==sel)selectMeasure(cur.mi,true);
    const L=layout[cur.mi];
    if(L){const r=document.getElementById('ph'+L.ri);
@@ -1181,8 +1203,9 @@ function buildMidi(){const TPQ=480,ev=[];const enc=new TextEncoder();
  const meta=(t,type,bytes)=>ev.push({t,o:0,d:[0xFF,type,bytes.length,...bytes]});
  meta(0,0x03,[...enc.encode((song.name||'Drum Notes').slice(0,60))]);
  const us=Math.round(60000000/song.bpm);meta(0,0x51,[(us>>16)&255,(us>>8)&255,us&255]);
- let tick=0,lastTS='';
+ let tick=0,lastTS='',lastUs=us;
  expandRepeats(song.measures).forEach(mi=>{const m=srcOf(song.measures,mi)||song.measures[mi];const inf=getInfo(m);
+  inf.forEach(it=>{if(it.jp)return;const u=Math.round(60000000/tempoAt(mi,it.t/qlen(m)));if(Math.abs(u-lastUs)>500){meta(tick+Math.round(it.t*TPQ),0x51,[(u>>16)&255,(u>>8)&255,u&255]);lastUs=u;}});
   const ts=m.num+'/'+m.den;if(ts!==lastTS){meta(tick,0x58,[m.num,Math.log2(m.den),24,8]);lastTS=ts;}
   inf.forEach((it,i)=>{const t0=tick+Math.round((it.t+swingOff(m,it,bu(m)))*TPQ);
    INST.forEach(x=>{const sv=m.notes[x.id][i];if(!sv)return;const lab=x.st[sv],o=m.orn[x.id][i]||0,n=midiNoteFor(x.id,lab);
@@ -1232,6 +1255,8 @@ function buildMusicXml(){const ms=song.measures,mt=song.meta||{};const ids=['BD'
   if(mi===0)x+=`<direction placement="above"><direction-type><metronome><beat-unit>quarter</beat-unit><per-minute>${song.bpm}</per-minute></metronome></direction-type><sound tempo="${song.bpm}"/></direction>`;
   if(mm.box)x+=`<direction placement="above"><direction-type><rehearsal enclosure="square">${mi+1}</rehearsal></direction-type></direction>`;
   if(mm.label)x+=`<direction placement="above"><direction-type><words font-style="italic" font-weight="bold">${xEsc(mm.label)}</words></direction-type></direction>`;
+  if(mm.tempo&&mi>0)x+=`<direction placement="above"><direction-type><metronome><beat-unit>quarter</beat-unit><per-minute>${tAbs(mm)}</per-minute></metronome></direction-type><sound tempo="${tAbs(mm)}"/></direction>`;
+  {const ra=rampAt(mi);if(ra&&ra.start===mi)x+=`<direction placement="above"><direction-type><words font-style="italic">${ra.up?'accel.':'rit.'}</words></direction-type></direction>`;}
   const voice=(v)=>{let out='';const has=INST.some(q=>q.v===v&&m.notes[q.id].some(Boolean));
    if(!has){return v===1?`<note><rest measure="yes"/><duration>${mdur}</duration><voice>1</voice></note>`:'';}
    voiceEvents(m,v).forEach(e=>{const tm=e.tup?`<time-modification><actual-notes>${e.tup[0]}</actual-notes><normal-notes>${e.tup[1]}</normal-notes></time-modification>`:'';

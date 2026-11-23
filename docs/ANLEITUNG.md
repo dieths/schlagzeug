@@ -194,7 +194,16 @@ Im Noteneditor eines Faulenzer-Takts:
 
 Gespielt wird A B C A B D. Ohne 𝄆 Anfang springt die Wiederholung zum Stückanfang bzw. hinter das vorige Wiederholungsende.
 
-### 3.5 Taktnummer markieren und Beschriftungen
+### 3.5 Tempowechsel im Stück
+
+Im Feld **Tempo ab hier** ein neues Tempo eintragen, z. B. 140. Ab diesem Takt gilt das neue Tempo; im Notenbild steht „♩ = 140“.
+
+- **sofort:** Das Tempo springt am Taktanfang.
+- **allmählich über 1/2/4/8 Takte:** Das Tempo steigt bzw. fällt in den Takten davor gleichmäßig an. Im Notenbild steht „accel.“ (schneller) oder „rit.“ (langsamer) mit gestrichelter Linie.
+
+Feld leeren entfernt den Tempowechsel. Tempoangaben hängen am Grundtempo: Wird das Stück über − / + oder den Tempo-Trainer insgesamt langsamer oder schneller, verändern sich alle Tempowechsel im gleichen Verhältnis. Während der Wiedergabe zeigt die Statuszeile das aktuelle Tempo.
+
+### 3.6 Taktnummer markieren und Beschriftungen
 
 - **▢ Nr. markieren:** Die Taktnummer steht fett im Rahmen über dem Takt (Orientierungsmarke, z. B. „Ab Takt 33“).
 - **Beschriftung:** Freitext über dem Takt, z. B. „Intro“, „Teil B“, „Song 2: Highway“. Ideal für Medleys.
@@ -211,7 +220,7 @@ Beides wird im PDF immer gedruckt, auch wenn die übrigen Taktnummern ausgeblend
 |---|---|
 | **▶ / ■** | Abspielen / Stopp (am Rechner auch Leertaste) |
 | **− / +** | Tempo ändern; gedrückt halten für schnelles Ändern |
-| **Zahl** | Tempo direkt eingeben (30–300, Viertel pro Minute) |
+| **Zahl** | Grundtempo direkt eingeben (30–300, Viertel pro Minute); wirkt auch während der Wiedergabe sofort |
 | **Tap** | Mehrmals im gewünschten Tempo tippen |
 | **Klick** | Metronom an/aus |
 | **Drums** | Drum-Sounds an/aus (aus = nur Metronom, zum Mitspielen) |
@@ -437,6 +446,7 @@ docker run --rm -v schlagzeug_drum-notes-data:/data -v "$PWD":/backup alpine \
 | Chorus wiederholen | Erster Takt 𝄆 Anfang → letzter Takt 𝄇 Ende (2×) |
 | Groove 7× wiederholen | Groove-Takt → nächster Takt Faulenzer 1 Takt → ⬚ Bereich → Kopieren → Einfügen |
 | Medley-Teil markieren | Takt wählen → ▢ Nr. markieren → Beschriftung „Song 2“ |
+| Schneller werden zum Refrain | Refrain-Takt wählen → Tempo ab hier 140 → allmählich über 2 Takte |
 | Kompaktes Notenblatt | ⇩ Export → Notengröße 60 %, 4 Takte pro Zeile, Mehrtaktpausen an → PDF erstellen |
 
 ---
