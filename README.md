@@ -1,6 +1,13 @@
 # Schlagzeugnoten 🥁
 
-Web-App zum Schreiben und Üben von Schlagzeugnoten – mit Metronom, Taktwechseln, gemischten Unterteilungen (Triolen, Quintolen, Sextolen, geteilte Schläge), Flams/Drags/Buzz, Sticking, automatischem Handsatz, Faulenzern (1 und 2 Takte), Wiederholungszeichen mit 1./2. Klammer, markierten Taktnummern, Abschnitts-Beschriftungen, Bereichsauswahl mit Kopieren/Einfügen, Swing, Aufnahme über E-Drum (MIDI) sowie Export als PDF-Notenblatt (mit Mehrtaktpausen und einstellbarer Größe), MIDI und MusicXML.
+Web-App zum Schreiben, Üben und Drucken von Schlagzeugnoten – am Handy, Tablet und Rechner.
+
+- **Eingabe:** Instrument-Spuren pro Takt (ein Feld pro Instrument, kein Zielen ins Notensystem) oder per Tastatur (H, S, K, Pfeiltasten …).
+- **Rhythmus:** Taktwechsel, gemischte Unterteilungen (Triolen, Quintolen, Sextolen, geteilte Schläge), halbe und ganze Noten, Haltebögen.
+- **Artikulation:** Akzente, Ghost-Notes, Flam, Drag, Buzz, offene Hi-Hat, Vorschläge auch auf Becken und Hi-Hat, Sticking mit automatischem Handsatz.
+- **Struktur:** Faulenzer (1 und 2 Takte), Wiederholungen mit 1./2. Klammer, markierte Taktnummern, Abschnitts-Beschriftungen, Bereichsauswahl mit Kopieren/Einfügen.
+- **Üben:** Metronom, echte Drum-Samples, Swing, Tempowechsel im Stück (sofort oder accel./rit.), Abspielen ab beliebigem Takt, Aufnahme vom E-Drum (MIDI).
+- **Export:** PDF-Notenblatt (Metadaten, Mehrtaktpausen, einstellbare Größe, speicherbare Voreinstellung für Urheber/Copyright/Layout), MIDI und MusicXML.
 
 📖 **[Anleitung für Benutzer](docs/ANLEITUNG.md)** – alle Funktionen Schritt für Schritt.
 
@@ -23,7 +30,17 @@ sudo docker compose --profile tunnel up -d --build   # mit Cloudflare Tunnel
 # oder ohne Tunnel:  sudo docker compose up -d --build
 ```
 
-Das Repository ist öffentlich und enthält keine Geheimnisse – Token, Passwort und Songs liegen nur auf dem Server (`.env` und Docker-Volume), nie im Repository.
+Das Repository enthält keine Geheimnisse – Token, Passwort und Songs liegen nur auf dem Server (`.env` und Docker-Volume), nie im Repository.
+
+**Privates Repository?** Dann braucht der Server einen Lesezugriff per Deploy Key:
+
+```sh
+ssh-keygen -t ed25519 -f ~/.ssh/schlagzeug_deploy -N ""
+cat ~/.ssh/schlagzeug_deploy.pub   # → GitHub: Repo → Settings → Deploy keys (ohne Schreibrecht)
+cd /opt/schlagzeug
+git remote set-url origin git@github.com:dieths/schlagzeug.git
+git config core.sshCommand "ssh -i ~/.ssh/schlagzeug_deploy"
+```
 
 Der Container ist gehärtet: läuft ohne Root, mit schreibgeschütztem Dateisystem (nur das Daten-Volume ist beschreibbar), ohne Linux-Capabilities und mit Speicherlimit. Standardmäßig ist der Port nur auf `127.0.0.1` gebunden, also von außen nicht erreichbar.
 
@@ -33,7 +50,7 @@ Kein Port am Router öffnen: Der Tunnel baut die Verbindung von innen zu Cloudfl
 
 ### 1. Tunnel anlegen
 
-1. [one.dash.cloudflare.com](https://one.dash.cloudflare.com) → **Networks → Tunnels → Create a tunnel** → Typ *Cloudflared*, Name z. B. `drum-notes`.
+1. [one.dash.cloudflare.com](https://one.dash.cloudflare.com) → **Networks → Tunnels → Create a tunnel** → Typ *Cloudflared*, Name z. B. `schlagzeugnoten`.
 2. Bei *Install connector* den Docker-Befehl anzeigen lassen und **nur den Token** (die lange Zeichenkette nach `--token`) kopieren → in `.env` als `TUNNEL_TOKEN=...` eintragen.
 3. **Public Hostname** hinzufügen: Subdomain `drums`, deine Domain, Service **HTTP** → `localhost:8080`.
    (Der Tunnel-Container teilt sich das Netzwerk mit der App, deshalb ist sie für ihn unter `localhost` erreichbar.)
@@ -97,7 +114,7 @@ docker run --rm -v schlagzeug_drum-notes-data:/data -v "$PWD":/backup alpine \
   tar czf /backup/drum-notes-backup.tgz -C /data .
 ```
 
-(Den genauen Volume-Namen zeigt `docker volume ls`.)
+(Den genauen Volume-Namen zeigt `docker volume ls`. Container und Volume heißen aus Kompatibilitätsgründen weiterhin `drum-notes`.)
 
 ## Klang
 
@@ -108,10 +125,11 @@ Das Drumset besteht aus echten Aufnahmen aus der [Versilian Community Sample Lib
 | Datei | Zweck |
 |---|---|
 | `public/index.html` | Die komplette App (eine Datei) |
+| `docs/ANLEITUNG.md` | Benutzeranleitung |
 | `public/sw.js` | Service Worker für den Offline-Betrieb |
 | `public/samples/` | Drum-Aufnahmen (WAV, CC0) |
 | `server.js` | Kleiner Node-Server ohne Abhängigkeiten: liefert die App aus, API `/api/songs` |
 | `Dockerfile`, `docker-compose.yml` | Container |
 | `update.sh` | Update vom Repository ziehen und neu bauen |
 
-API: `GET /api/ping`, `GET /api/songs`, `GET/PUT /api/songs/:id` (bei Passwort mit Header `X-Token`).
+API: `GET /api/ping`, `GET /api/songs`, `GET/PUT /api/songs/:id` (bei Passwort mit Header `X-Token`). Über dieselbe API werden auch Ordner und die PDF-Voreinstellung als eigene Einträge abgeglichen.
