@@ -1,6 +1,6 @@
 {
-  "name": "Drum Notes",
-  "short_name": "Drum Notes",
+  "name": "Schlagzeugnoten",
+  "short_name": "Schlagzeugnoten",
   "description": "Schlagzeugnoten schreiben und üben – mit Metronom, Taktwechseln und Sticking.",
   "lang": "de",
   "start_url": "./",

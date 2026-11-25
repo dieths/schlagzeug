@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Drum Notes – Schlagzeugnoten üben</title>
+<title>Schlagzeugnoten</title>
 <link rel="manifest" href="manifest.webmanifest" crossorigin="use-credentials">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
 <meta name="theme-color" content="#d9480f">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Drum Notes">
+<meta name="apple-mobile-web-app-title" content="Schlagzeugnoten">
 <style>
 :root{--bg:#f4f2ed;--panel:#fff;--ink:#1d1d1f;--muted:#76767c;--line:#dcd8cf;--acc:#d9480f;--acc2:#1c6fd1;--cell:#eeebe4;--cell2:#e2ded5;--on:#1d1d1f;--onink:#fff}
 @media (prefers-color-scheme:dark){:root{--bg:#121214;--panel:#1d1d20;--ink:#ececef;--muted:#9a9aa1;--line:#323238;--cell:#28282d;--cell2:#323238;--on:#ececef;--onink:#141416;--acc:#ff7a3d;--acc2:#5ea8ff}}
@@ -1027,11 +1027,11 @@ function openModal(html){LV.open=false;$('#sheet').innerHTML=html;$('#modal').cl
 function closeModal(){LV.open=false;$('#modal').classList.remove('open');}
 $('#modal').addEventListener('click',e=>{if(e.target.id==='modal')closeModal();});
 function openSong(x){if(P.on)stop();undoStack=[];song=normalize(JSON.parse(JSON.stringify(x)));sel=0;lastSig=sig(song);LS.set('dn.cur',{id:song.id,sel});renderAll();closeModal();}
-function loadSong(x,folder){const c=JSON.parse(JSON.stringify(x));c.id=uid();c.updatedAt=Date.now();c.folder=folder||'';delete c.trashed;delete c.trashRoot;openSong(c);lastSig='';persist();}
+function loadSong(x,folder,fresh){const c=JSON.parse(JSON.stringify(x));if(fresh){c.meta=c.meta||{};applyPdfPrefs(c.meta);}c.id=uid();c.updatedAt=Date.now();c.folder=folder||'';delete c.trashed;delete c.trashRoot;openSong(c);lastSig='';persist();}
 const isSongRec=x=>x&&!x.kind&&!x.deleted&&validSong(x);
 const isFolder=x=>x&&x.kind==='folder'&&!x.deleted;
 const liveSongs=()=>Object.values(LIB).filter(x=>isSongRec(x)&&!x.trashed).sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0));
-function openFirst(){const l=liveSongs();if(l.length)openSong(l[0]);else loadSong(PRESETS['Leeres Blatt (4/4)'](),LV.folder);}
+function openFirst(){const l=liveSongs();if(l.length)openSong(l[0]);else loadSong(PRESETS['Leeres Blatt (4/4)'](),LV.folder,true);}
 const SYNCTXT={ok:'Mit dem Server synchronisiert',off:'Server gerade nicht erreichbar – Änderungen werden übertragen, sobald er wieder da ist',local:'Nur auf diesem Gerät gespeichert',auth:'Passwort für den Server nötig',login:'Anmeldung abgelaufen – zum Neu-Anmelden hier tippen',busy:'Synchronisiere …'};
 function fmtDate(t){try{return new Date(t).toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'2-digit'});}catch(e){return '';}}
 
@@ -1127,7 +1127,7 @@ $('#sheet').addEventListener('click',e=>{const b=e.target.closest('[data-a]');if
   case 'LnewF':LV.newFolder=!LV.newFolder;LV.newSong=false;R();break;
   case 'LnewFok':{const v=($('#nfIn').value||'').trim();if(!v){toast('Bitte einen Namen eingeben');break;}const f={id:uid(),kind:'folder',name:v,parent:LV.folder,updatedAt:Date.now()};LIB[f.id]=f;libSaved();LV.newFolder=false;R();break;}
   case 'LnewS':LV.newSong=!LV.newSong;LV.newFolder=false;R();break;
-  case 'Lpreset':LV.newSong=false;loadSong(PRESETS[n](),LV.folder);break;
+  case 'Lpreset':LV.newSong=false;loadSong(PRESETS[n](),LV.folder,true);break;
   case 'Lsel':LV.select=!LV.select;LV.sel.clear();LV.menu='';R();break;
   case 'Ltog':if(e.target.tagName!=='INPUT'||true){LV.sel.has(n)?LV.sel.delete(n):LV.sel.add(n);}R();break;
   case 'LselMove':LV.move=[...LV.sel];R();break;
@@ -1167,7 +1167,7 @@ async function sync(){if(!SERVER)return;if(SY.busy){SY.again=true;return;}SY.bus
   setSync('ok');if(LV.open)libDialog();}
  catch(e){if(e&&e.auth){setSync('auth');askToken();}else if(e&&e.login)setSync('login');else setSync('off');}
  finally{SY.busy=false;if(SY.again){SY.again=false;scheduleSync(300);}}}
-function askToken(){if(SY.asked)return;SY.asked=true;openModal(`<h2>Passwort für Drum Notes</h2><p class="muted">Der Server ist mit einem Passwort geschützt. Es wird nur auf diesem Gerät gespeichert.</p><label class="fld"><span>Passwort</span><input id="tok" type="password" autocomplete="current-password"></label><div class="row" style="margin-top:12px"><button class="btn pri" data-a="tokenGo">Verbinden</button><button class="btn" data-a="close">Später</button></div>`);}
+function askToken(){if(SY.asked)return;SY.asked=true;openModal(`<h2>Passwort für Schlagzeugnoten</h2><p class="muted">Der Server ist mit einem Passwort geschützt. Es wird nur auf diesem Gerät gespeichert.</p><label class="fld"><span>Passwort</span><input id="tok" type="password" autocomplete="current-password"></label><div class="row" style="margin-top:12px"><button class="btn pri" data-a="tokenGo">Verbinden</button><button class="btn" data-a="close">Später</button></div>`);}
 async function initServer(){
  if(!/^https?:$/.test(location.protocol))return;
  if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
@@ -1250,7 +1250,7 @@ async function renderPages(){
   lines.forEach(l=>{if(y+16>bottom){newPage();ctx.font=`13px ${serif}`;}ctx.fillText(l,M,y+12);y+=17;});}
  if(lgImg){if(y+lg.h+24>bottom)newPage();y+=12;ctx.font=`bold 13px ${serif}`;ctx.fillText('Legende',M,y+12);y+=14;ctx.drawImage(lgImg,M,y,lg.w,lg.h);y+=lg.h;}
  pages.forEach((c,i)=>{const x=c.getContext('2d');x.setTransform(S,0,0,S,0,0);
-  if(i===0&&mt.copy){x.font=`11px ${serif}`;x.fillStyle='#333';x.textAlign='center';x.fillText(mt.copy,PW/2,PH-38);}
+  if(i===0&&mt.copy){x.font=`11px ${serif}`;x.fillStyle='#333';x.textAlign='center';x.fillText(fillYear(mt.copy),PW/2,PH-38);}
   x.font=`10px ${sans}`;x.fillStyle='#999';x.textAlign='right';x.fillText(`${i+1} / ${pages.length}`,PW-M,PH-22);});
  return pages;}
 function estimatePages(){const mt=song.meta,PW=794,PH=1123,M=48,CW=PW-2*M,bottom=PH-M-26,sc=(mt.scale||100)/100;
@@ -1258,6 +1258,13 @@ function estimatePages(){const mt=song.meta,PW=794,PH=1123,M=48,CW=PW-2*M,bottom
  rows.forEach(r=>{const k=Math.min(1,CW/(r.w*sc));const h=r.h*sc*k;if(y+h>bottom){pages++;y=M+16;}y+=h+4*sc;});
  if(mt.legend&&y+150>bottom)pages++;return {pages,rows:rows.length};}
 function updEstimate(){const e=$('#pdfEst');if(!e)return;const r=estimatePages();e.textContent=`${song.measures.length} Takte in ${r.rows} Zeilen → etwa ${r.pages} ${r.pages===1?'Seite':'Seiten'}`;}
+/* PDF-Voreinstellung: wird wie ein Ordner als eigener Eintrag synchronisiert */
+const PDFP_ID='prefs-pdf',PDFP_TXT=['comp','arr','copy'],PDFP_LAY=['scale','perLine','nums','mmr','legend','stick'];
+function pdfPrefs(){const x=LIB[PDFP_ID];return x&&x.kind==='prefs'&&!x.deleted?x:null;}
+const fillYear=v=>String(v||'').replace(/\{jahr\}/gi,String(new Date().getFullYear()));
+function applyPdfPrefs(mt,all){const p=pdfPrefs();if(!p)return false;PDFP_TXT.forEach(k=>{if(p[k]&&(all||!mt[k]))mt[k]=fillYear(p[k]);});PDFP_LAY.forEach(k=>{if(k in p)mt[k]=p[k];});return true;}
+function savePdfPrefs(){const mt=song.meta,p={id:PDFP_ID,kind:'prefs',name:'PDF-Voreinstellung',updatedAt:Date.now()};PDFP_TXT.forEach(k=>p[k]=String(mt[k]||'').slice(0,200));PDFP_LAY.forEach(k=>p[k]=mt[k]);LIB[PDFP_ID]=p;libSaved();}
+function pdfPrefsInfo(){const p=pdfPrefs();if(!p)return 'Noch keine Voreinstellung gespeichert.';const t=[p.comp&&'Urheber: '+p.comp,p.arr&&'Arrangement: '+p.arr,p.copy&&'Copyright: '+p.copy].filter(Boolean);return 'Gespeichert: '+(t.length?t.join(' · '):'nur Layout')+` · ${p.scale} % · `+(p.perLine?p.perLine+' Takte/Zeile':'Takte automatisch');}
 function pdfDialog(){const mt=song.meta;const f=(k,l,ph)=>`<label class="fld"><span>${l}</span><input data-mk="${k}" value="${esc(mt[k])}" placeholder="${ph}"></label>`;
  openModal(`<div class="row"><h2 style="flex:1;margin:0">Export</h2><button class="btn" data-a="close">Schließen</button></div>
  <label class="fld"><span>Titel</span><input data-mk="name" value="${esc(song.name)}"></label>
@@ -1265,7 +1272,7 @@ function pdfDialog(){const mt=song.meta;const f=(k,l,ph)=>`<label class="fld"><s
  ${f('comp','Musik / Urheber','z. B. Max Mustermann')}
  ${f('arr','Arrangement / Transkription','z. B. Dein Name')}
  ${f('style','Tempo- / Stilangabe','z. B. Moderato · Funk · Swing-16tel')}
- ${f('copy','Copyright-Zeile','z. B. © 2026 Max Mustermann')}
+ ${f('copy','Copyright-Zeile','z. B. © {Jahr} Max Mustermann')}
  <label class="fld"><span>Spielhinweise</span><textarea data-mk="notes" placeholder="z. B. Akzente deutlich, Ghost-Notes sehr leise, Wiederholung 4×">${esc(mt.notes)}</textarea></label>
  <h4>Layout</h4>
  <div class="row"><label class="fld" style="margin:0;flex:1"><span>Notengröße</span><select data-ms="scale">${[100,90,80,70,60,50].map(v=>`<option value="${v}" ${mt.scale===v?'selected':''}>${v} %</option>`).join('')}</select></label>
@@ -1278,6 +1285,10 @@ function pdfDialog(){const mt=song.meta;const f=(k,l,ph)=>`<label class="fld"><s
  <label class="chk" style="margin-top:6px"><input type="checkbox" data-mc="stick" ${mt.stick?'checked':''}> Sticking drucken</label>
  <div class="row" style="margin-top:14px"><button class="btn pri" data-a="pdfGo">PDF erstellen</button></div>
  <p class="muted" style="margin:8px 0 0">Die Angaben werden mit dem Song gespeichert.</p>
+ <h4>Voreinstellung</h4>
+ <p class="muted" style="margin:0 0 6px">Urheber, Arrangement, Copyright und Layout als Standard merken – neue Songs übernehmen sie automatisch. <b>{Jahr}</b> in der Copyright-Zeile wird durch das aktuelle Jahr ersetzt.</p>
+ <div class="row"><button class="btn" data-a="pdfPrefSave">★ Als Voreinstellung speichern</button><button class="btn" data-a="pdfPrefLoad" ${pdfPrefs()?'':'disabled'}>Voreinstellung einsetzen</button></div>
+ <p class="muted" id="pdfPrefInfo" style="margin:6px 0 0">${esc(pdfPrefsInfo())}</p>
  <h4>Andere Formate</h4>
  <div class="row"><button class="btn" data-a="expMid">MIDI (.mid)</button><button class="btn" data-a="expXml">MusicXML (MuseScore)</button></div>
  <p class="muted" style="margin:6px 0 0">MIDI: Drumspur auf Kanal 10 mit Wiederholungen, Swing und Verzierungen – für DAW oder E-Drum-Modul. MusicXML: Notenbild zum Weiterbearbeiten in MuseScore, Sibelius, Dorico u. a.</p>`);updEstimate();}
@@ -1285,8 +1296,12 @@ $('#sheet').addEventListener('change',e=>{const k=e.target.dataset.ms;if(!k)retu
 $('#sheet').addEventListener('input',e=>{const k=e.target.dataset.mk;if(!k)return;if(k==='name'){song.name=e.target.value.trim()||'Ohne Titel';$('#name').value=song.name;}else song.meta[k]=e.target.value;persist();});
 $('#sheet').addEventListener('change',e=>{const k=e.target.dataset.mc;if(!k)return;song.meta[k]=e.target.checked;persist();updEstimate();});
 $('#sheet').addEventListener('click',e=>{const a=e.target.closest('[data-a="pdfGo"]');if(a){closeModal();exportPdf();}});
+$('#sheet').addEventListener('click',e=>{const a=e.target.closest('[data-a="pdfPrefSave"],[data-a="pdfPrefLoad"]');if(!a)return;
+ if(a.dataset.a==='pdfPrefSave'){savePdfPrefs();toast('Voreinstellung gespeichert');}
+ else{applyPdfPrefs(song.meta,true);persist();toast('Voreinstellung eingesetzt');}
+ const sc=$('#sheet').scrollTop;pdfDialog();$('#sheet').scrollTop=sc;});
 $('#sheet').addEventListener('click',e=>{const a=e.target.closest('[data-a="expMid"],[data-a="expXml"]');if(!a)return;
- const base=(song.name||'Drum Notes').replace(/[\\/:*?"<>|]+/g,'-');
+ const base=(song.name||'Schlagzeugnoten').replace(/[\\/:*?"<>|]+/g,'-');
  if(a.dataset.a==='expMid')saveExport(base+'.mid',buildMidi());else saveExport(base+'.musicxml',new TextEncoder().encode(buildMusicXml()));});
 
 /* ---------- Export: MIDI & MusicXML ---------- */
@@ -1294,7 +1309,7 @@ const GMN={BD:36,SN:38,HH:42,HHO:46,HF:44,RD:51,RDB:53,CR:49,T1:48,T2:45,FT:41};
 function midiNoteFor(id,lab){if(id==='HH'&&lab==='o')return GMN.HHO;if(id==='RD'&&lab==='>')return GMN.RDB;return GMN[id];}
 function buildMidi(){const TPQ=480,ev=[];const enc=new TextEncoder();
  const meta=(t,type,bytes)=>ev.push({t,o:0,d:[0xFF,type,bytes.length,...bytes]});
- meta(0,0x03,[...enc.encode((song.name||'Drum Notes').slice(0,60))]);
+ meta(0,0x03,[...enc.encode((song.name||'Schlagzeugnoten').slice(0,60))]);
  const us=Math.round(60000000/song.bpm);meta(0,0x51,[(us>>16)&255,(us>>8)&255,us&255]);
  let tick=0,lastTS='',lastUs=us;
  expandRepeats(song.measures).forEach(mi=>{const m=srcOf(song.measures,mi)||song.measures[mi];const inf=getInfo(m);
@@ -1343,7 +1358,7 @@ function voiceEvents(m,v){const inf=getInfo(m),bst=beatStarts(m),B=bu(m),ev=[];
 function xEsc(t){return String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
 function buildMusicXml(){const ms=song.measures,mt=song.meta||{};const ids=['BD','SN','HH','HHO','HF','RD','CR','T1','T2','FT'];
  let x=`<?xml version="1.0" encoding="UTF-8"?>\n<!DOCTYPE score-partwise PUBLIC "-//Recordare//DTD MusicXML 4.0 Partwise//EN" "http://www.musicxml.org/dtds/partwise.dtd">\n<score-partwise version="4.0">\n`;
- x+=`<work><work-title>${xEsc(song.name)}</work-title></work>\n<identification>${mt.comp?`<creator type="composer">${xEsc(mt.comp)}</creator>`:''}${mt.arr?`<creator type="arranger">${xEsc(mt.arr)}</creator>`:''}${mt.copy?`<rights>${xEsc(mt.copy)}</rights>`:''}<encoding><software>Drum Notes</software></encoding></identification>\n`;
+ x+=`<work><work-title>${xEsc(song.name)}</work-title></work>\n<identification>${mt.comp?`<creator type="composer">${xEsc(mt.comp)}</creator>`:''}${mt.arr?`<creator type="arranger">${xEsc(mt.arr)}</creator>`:''}${mt.copy?`<rights>${xEsc(fillYear(mt.copy))}</rights>`:''}<encoding><software>Schlagzeugnoten</software></encoding></identification>\n`;
  x+=`<part-list><score-part id="P1"><part-name>Drumset</part-name>`+ids.map(i=>`<score-instrument id="P1-${i}"><instrument-name>${XNAME[i]}</instrument-name></score-instrument>`).join('')+ids.map(i=>`<midi-instrument id="P1-${i}"><midi-channel>10</midi-channel><midi-unpitched>${GMN[i]+1}</midi-unpitched></midi-instrument>`).join('')+`</score-part></part-list>\n<part id="P1">\n`;
  let lastTS='';
  ms.forEach((mm,mi)=>{const m=srcOf(ms,mi)||mm;const inf=getInfo(m);const mdur=Math.round(qlen(m)*DIV);
@@ -1408,7 +1423,7 @@ async function exportPdf(){
  const btn=$('#bPdf');btn.disabled=true;btn.textContent='…';
  try{const pages=await renderPages();
   const jpegs=pages.map(c=>{const b=atob(c.toDataURL('image/jpeg',0.9).split(',')[1]);const u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return {bytes:u,w:c.width,h:c.height};});
-  const pdf=makePdf(jpegs);const fn=(song.name||'Drum Notes').replace(/[\\/:*?"<>|]+/g,'-')+'.pdf';
+  const pdf=makePdf(jpegs);const fn=(song.name||'Schlagzeugnoten').replace(/[\\/:*?"<>|]+/g,'-')+'.pdf';
   await saveFile(new Blob([pdf],{type:'application/pdf'}),fn);toast('PDF gespeichert');
  }catch(e){const c=e&&e.code;if(c==='declined')toast('Abgebrochen');else if(c==='rate_limited')toast('Bitte kurz warten und nochmal');else toast('PDF konnte nicht erstellt werden');console.warn(e);}
  finally{btn.disabled=false;btn.textContent='PDF';}}

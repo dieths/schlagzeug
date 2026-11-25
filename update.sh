@@ -9,4 +9,4 @@ else
   docker compose up -d --build
 fi
 docker image prune -f >/dev/null
-echo "Drum Notes ist aktuell."
+echo "Schlagzeugnoten ist aktuell."

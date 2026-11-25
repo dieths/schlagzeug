@@ -1,5 +1,5 @@
 // Offline-Cache: Online immer die neueste Version laden, offline die gespeicherte nehmen.
-const CACHE = 'drum-notes-v2';
+const CACHE = 'drum-notes-v3';
 const KIT = { bd: ['s1','s2','n1','n2','a1','a2'], sn: ['s1','s2','n1','n2','a1','a2'], hh: ['s1','s2','n1','n2','a1','a2'], ho: ['n1','n2'], hf: ['n1','n2'], t1: ['s1','n1','n2','a1'], t2: ['s1','n1','n2','a1'], rd: ['n1','a1','b1'], cr: ['n1','a1'] };
 const SAMPLES = Object.entries(KIT).flatMap(([g, ks]) => ks.map((k) => `samples/${g}_${k}.wav`));
 const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'apple-touch-icon.png', ...SAMPLES];

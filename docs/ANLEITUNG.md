@@ -1,6 +1,6 @@
-# Drum Notes – Anleitung
+# Schlagzeugnoten – Anleitung
 
-Drum Notes ist eine Web-App zum Schreiben, Üben und Drucken von Schlagzeugnoten. Sie läuft im Browser auf Handy, Tablet und Rechner, funktioniert offline und gleicht alle Songs über den eigenen Server ab.
+Schlagzeugnoten ist eine Web-App zum Schreiben, Üben und Drucken von Schlagzeugnoten. Sie läuft im Browser auf Handy, Tablet und Rechner, funktioniert offline und gleicht alle Songs über den eigenen Server ab.
 
 ---
 
@@ -375,6 +375,20 @@ Ordner kommen mit ihrem gesamten Inhalt in den Papierkorb und werden auch komple
 Unter den Layout-Optionen steht eine Schätzung wie „110 Takte in 26 Zeilen → etwa 3 Seiten“.
 
 > **Viele Takte auf wenige Seiten:** Notengröße 60 %, 4 Takte pro Zeile, Taktnummern am Zeilenanfang. So passen rund 110 Takte auf 3 Seiten.
+
+**Voreinstellung**
+
+Damit Urheber, Arrangement und Copyright nicht bei jedem Song neu eingetippt werden müssen:
+
+1. Im Export-Dialog die Felder und das Layout einmal so ausfüllen, wie sie meistens sein sollen.
+2. **★ Als Voreinstellung speichern** tippen.
+
+Gespeichert werden Musik / Urheber, Arrangement, Copyright-Zeile sowie alle Layout-Optionen (Notengröße, Takte pro Zeile, Taktnummern, Mehrtaktpausen, Legende, Sticking). Titel, Untertitel, Stilangabe und Spielhinweise bleiben songspezifisch.
+
+- **Neue Songs** übernehmen die Voreinstellung automatisch.
+- **Bestehende Songs:** Im Export-Dialog **Voreinstellung einsetzen** tippen. Die gespeicherten Angaben überschreiben dann die Felder des Songs.
+- **{Jahr}** in der Copyright-Zeile wird beim Einsetzen durch das aktuelle Jahr ersetzt, z. B. `© {Jahr} Max Mustermann` → `© 2026 Max Mustermann`.
+- Die Voreinstellung wird über den Server mit allen Geräten abgeglichen.
 
 ### 7.2 MIDI (.mid)
 

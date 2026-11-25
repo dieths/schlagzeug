@@ -1,4 +1,4 @@
-// Drum Notes – kleiner Server ohne Abhängigkeiten.
+// Schlagzeugnoten – kleiner Server ohne Abhängigkeiten.
 // Liefert die App aus (public/) und speichert Songs als JSON-Dateien in DATA_DIR/songs.
 'use strict';
 const http = require('http');
@@ -130,5 +130,5 @@ http.createServer((req, res) => {
     send(res, 405, { error: 'Methode nicht erlaubt' });
   }
 }).listen(PORT, () => {
-  console.log(`Drum Notes läuft auf Port ${PORT} (Daten: ${DATA}${PASSWORD ? ', mit Passwort' : ''})`);
+  console.log(`Schlagzeugnoten läuft auf Port ${PORT} (Daten: ${DATA}${PASSWORD ? ', mit Passwort' : ''})`);
 });

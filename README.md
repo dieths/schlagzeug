@@ -1,4 +1,4 @@
-# Drum Notes 🥁
+# Schlagzeugnoten 🥁
 
 Web-App zum Schreiben und Üben von Schlagzeugnoten – mit Metronom, Taktwechseln, gemischten Unterteilungen (Triolen, Quintolen, Sextolen, geteilte Schläge), Flams/Drags/Buzz, Sticking, automatischem Handsatz, Faulenzern (1 und 2 Takte), Wiederholungszeichen mit 1./2. Klammer, markierten Taktnummern, Abschnitts-Beschriftungen, Bereichsauswahl mit Kopieren/Einfügen, Swing, Aufnahme über E-Drum (MIDI) sowie Export als PDF-Notenblatt (mit Mehrtaktpausen und einstellbarer Größe), MIDI und MusicXML.
 
@@ -45,7 +45,7 @@ Kein Port am Router öffnen: Der Tunnel baut die Verbindung von innen zu Cloudfl
 **Unbedingt vor dem ersten Aufruf einrichten** – sonst ist die App öffentlich.
 
 1. **Access → Applications → Add an application → Self-hosted**.
-2. Name `Drum Notes`, Domain `drums.deinedomain.de` (ohne Pfad, gilt damit auch für `/api`).
+2. Name `Schlagzeugnoten`, Domain `drums.deinedomain.de` (ohne Pfad, gilt damit auch für `/api`).
 3. **Session Duration:** z. B. *1 month*, damit du dich am Handy nicht ständig neu anmelden musst.
 4. Policy: Action **Allow**, Include → **Emails** → deine E-Mail-Adresse(n).
 5. Login-Methode: *One-time PIN* (Code per Mail) reicht völlig, alternativ Google/GitHub.
