@@ -23,15 +23,26 @@ Drum Notes ist eine Web-App zum Schreiben, Üben und Drucken von Schlagzeugnoten
 
 ## 1. Überblick über die Oberfläche
 
-Die App ist von oben nach unten aufgebaut:
+Die App füllt immer genau den Bildschirm – nichts rutscht weg:
 
 | Bereich | Inhalt |
 |---|---|
-| **Kopfzeile** | Songname (antippen zum Umbenennen), Statuspunkt für die Synchronisation, **⇩ Export**, **📁 Songs** |
-| **Notenansicht** | Das ganze Stück als Notenbild. Ein Tipp auf einen Takt wählt ihn zum Bearbeiten aus. |
-| **Editor** | Takt-Navigation, Taktart, Takt-Optionen, Werkzeuge und der vergrößerte Noteneditor des gewählten Takts |
-| **Üben & Einstellungen** | Aufklappbar: Abspielbereich, Tempo-Trainer, Swing, E-Drum, Lautstärke, Klang |
+| **Kopfzeile** | Songname (antippen zum Umbenennen), Statuspunkt, **⇩ Export**, **📁 Songs**, **⚙** (Üben & Einstellungen) |
+| **Notenansicht** (oben) | Das ganze Stück. Scrollt in sich. Ein Tipp auf einen Takt wählt ihn aus. |
+| **Bearbeitung** (fest darunter) | Takt-Navigation, Werkzeuge und die Instrument-Spuren des gewählten Takts. Mit **▾** einklappen, wenn du nur lesen oder üben willst. |
 | **Transportleiste** (unten) | ▶ Abspielen/Stopp, Tempo (−, Zahl, +), Tap, Klick an/aus, Drums an/aus |
+
+Die obere Zeile der Bearbeitung:
+
+| Knopf | Funktion |
+|---|---|
+| **◀ Takt 3/12 ▶** | Takt wechseln |
+| **▶ ab hier** | Ab diesem Takt abspielen |
+| **⚙ Takt** | Takt-Optionen: Taktart, Raster, Takte einfügen/löschen/verschieben, Bereich kopieren, Faulenzer, Wiederholungen, Tempo, Beschriftung |
+| **＋** | Leeren Takt dahinter einfügen |
+| **⌨** | Tastatur-Kürzel (nur am Rechner) |
+| **↶** | Rückgängig |
+| **▾ / ▴** | Bearbeitung ein-/ausklappen |
 
 Alles wird automatisch gespeichert. Es gibt keinen Speichern-Knopf.
 
@@ -42,13 +53,13 @@ Alles wird automatisch gespeichert. Es gibt keinen Speichern-Knopf.
 ### 2.1 Takt auswählen
 
 - In der Notenansicht auf den Takt tippen, oder
-- im Editor mit **◀** und **▶** blättern.
+- mit **◀** und **▶** blättern (am Rechner auch **↑ ↓**).
 
-Der gewählte Takt ist farbig hinterlegt und erscheint vergrößert im Noteneditor.
+Der gewählte Takt ist farbig hinterlegt; darunter erscheinen seine Instrument-Spuren.
 
 ### 2.2 Taktart
 
-Unter **Taktart** Zähler (1–16) und Nenner (2, 4, 8) wählen. Jeder Takt hat seine eigene Taktart, Taktwechsel sind also einfach möglich (z. B. 4/4 → 7/8 → 3/4). Beim Ändern bleiben vorhandene Noten an ihrer zeitlichen Position, soweit sie noch in den Takt passen.
+Unter **⚙ Takt → Taktart** Zähler (1–16) und Nenner (2, 4, 8) wählen. Jeder Takt hat seine eigene Taktart, Taktwechsel sind also einfach möglich (z. B. 4/4 → 7/8 → 3/4). Beim Ändern bleiben vorhandene Noten an ihrer zeitlichen Position, soweit sie noch in den Takt passen.
 
 > Das Tempo bezieht sich immer auf Viertel (♩). Bei x/8-Takten klickt das Metronom auf jede Achtel und betont den Beginn jeder Gruppe (z. B. 2+2+3 bei 7/8).
 
@@ -56,8 +67,8 @@ Unter **Taktart** Zähler (1–16) und Nenner (2, 4, 8) wählen. Jeder Takt hat 
 
 Das Raster bestimmt, auf welche Positionen Noten gesetzt werden können.
 
-- **Raster (alle):** setzt die Unterteilung für alle Schläge des Takts.
-- **Raster pro Schlag:** Über jedem Schlag im Noteneditor sitzt ein eigenes Auswahlfeld. So lassen sich Unterteilungen innerhalb eines Takts mischen.
+- **Raster (alle)** (unter ⚙ Takt): setzt die Unterteilung für alle Schläge des Takts.
+- **Raster pro Schlag:** Über jedem Schlag in der Bearbeitung sitzt ein eigenes Auswahlfeld. So lassen sich Unterteilungen innerhalb eines Takts mischen.
 
 | Auswahl (x/4) | Bedeutung |
 |---|---|
@@ -80,7 +91,7 @@ Die Notation zeigt die Tuplet-Zahl (3, 5, 6) automatisch über der betreffenden 
 
 ### 2.4 Werkzeuge
 
-Erst ein Werkzeug wählen, dann in die Noten tippen. Ein zweiter Tipp an dieselbe Stelle nimmt die Eingabe wieder weg.
+Erst ein Werkzeug wählen, dann in die Spur des Instruments tippen. Ein zweiter Tipp an dieselbe Stelle nimmt die Eingabe wieder weg.
 
 | Werkzeug | Wirkung | Instrumente |
 |---|---|---|
@@ -103,39 +114,50 @@ Erst ein Werkzeug wählen, dann in die Noten tippen. Ein zweiter Tipp an dieselb
 
 Lange Noten gehen immer bis zum nächsten Schlag derselben Stimme (Hände bzw. Füße), höchstens bis zum Taktende.
 
-### 2.5 Direkt in die Noten tippen
+### 2.5 Instrument-Spuren
 
-Im Noteneditor gilt:
+Unter dem Raster liegt für jedes Instrument eine eigene, große Zeile – genau unter den Zählzeiten (1 e + a …). In die **Snare-Zeile** tippen setzt immer eine Snare, eine Verwechslung ist ausgeschlossen. Das Ergebnis siehst du sofort oben im Notenbild.
 
-- **Waagerechte Position:** Zählzeit
-- **Senkrechte Position:** Instrument (nach üblicher Schlagzeugnotation)
+- Angezeigt werden Hi-Hat, Snare, Bassdrum und alle Instrumente, die im Takt (oder direkt davor/danach) vorkommen.
+- **＋ Alle Instrumente** blendet die übrigen Spuren (Crash, Ride, Toms, HH-Fuß) ein.
+- Die unterste Zeile **Sticking** wechselt pro Tipp zwischen R, L und leer.
+- **♪ Noten hier zeigen** blendet zusätzlich den vergrößerten Takt über den Spuren ein (auf großen Bildschirmen standardmäßig an, am Handy aus, weil der Takt oben schon zu sehen ist).
 
-**So geht's:** Finger auf das Notensystem legen, gedrückt halten und verschieben. Eine Vorschau zeigt z. B. „Snare · 2 e · setzen“. Beim Loslassen wird gesetzt. Mit der Maus erscheint die Vorschau schon beim Darüberfahren.
+### 2.6 Schreiben mit der Tastatur (Rechner)
 
-**Tipp für Handys:** Im Feld **Instrument** z. B. **Nur Snare** wählen. Dann zählt nur noch die waagerechte Position – ideal für Snare-Etüden.
+Am Rechner geht es am schnellsten mit der Tastatur. Ein blauer **Cursor** markiert die aktuelle Position; ein Klick in eine Spur oder in die Noten setzt ihn.
 
-**Positionen im Notensystem**
+| Taste | Wirkung |
+|---|---|
+| ← → | Cursor eine Position weiter/zurück (läuft über Taktgrenzen) |
+| ⇧ + ← → | Zum nächsten/vorigen Schlag |
+| ↑ ↓ | Vorheriger/nächster Takt |
+| Enter | Eine Position weiter |
+| H / O / P | Hi-Hat / Hi-Hat offen / Hi-Hat mit dem Fuß |
+| S | Snare |
+| K oder B | Bassdrum |
+| 1 / 2 / 3 | Tom 1 / Tom 2 / Standtom |
+| R / C | Ride / Crash |
+| ⇧ + Buchstabe | mit Akzent setzen |
+| A | Akzent an der Position umschalten |
+| G | Ghost-Note (Snare) |
+| F / D / Z | Flam / Drag / Buzz-Wirbel |
+| L / T | Lange Note / Haltebogen umschalten |
+| X | Sticking R / L / leer |
+| Entf | Alles an der Position löschen |
+| Leertaste | Abspielen / Stopp |
+| Strg/⌘ + Z | Rückgängig |
 
-| Instrument | Position | Notenkopf | Hals |
-|---|---|---|---|
-| Crash | Hilfslinie über dem System | x | oben |
-| Hi-Hat | Zwischenraum über dem System | x | oben |
-| Ride | oberste Linie | x | oben |
-| Tom 1 | oberster Zwischenraum | ● | oben |
-| Tom 2 | vierte Linie | ● | oben |
-| Snare | dritter Zwischenraum | ● | oben |
-| Standtom | zweiter Zwischenraum | ● | oben |
-| Bassdrum | unterster Zwischenraum | ● | unten |
-| HH-Fuß | unter dem System | x | unten |
+Ein zweiter Druck auf dieselbe Taste nimmt den Schlag wieder weg. Mehrere Instrumente an einer Position (z. B. Hi-Hat + Bassdrum): einfach nacheinander H und K drücken, dann → weiter.
 
-### 2.6 Raster-Ansicht (Tabelle)
+**Beispiel Rock-Beat (8tel):** `H K → → H → → H S → → H → → H K → → H → → H S`
 
-Unter **Raster-Ansicht** (aufklappbar) lassen sich Noten wie in einem Step-Sequencer setzen: eine Zeile pro Instrument, eine Spalte pro Rasterposition. Die Werkzeuge gelten hier genauso. **Nur Snare** blendet alle anderen Zeilen aus und vergrößert die Felder.
+Die Übersicht gibt es jederzeit über **⌨** in der Bearbeitung.
 
 ### 2.7 Sticking (Handsatz)
 
-- **Von Hand:** In die Sticking-Zeile unter dem Notensystem tippen. Jeder Tipp wechselt zwischen R, L und leer.
-- **Automatisch:** **✋ Handsatz** öffnen:
+- **Von Hand:** In die Sticking-Spur tippen (oder Taste X). Jeder Tipp wechselt zwischen R, L und leer.
+- **Automatisch:** **✋** (rechts neben den Werkzeugen) öffnen:
   - **Nach Raster:** Jede Rasterposition hat eine feste Hand, die Führhand liegt immer auf dem Schlag. Gut für Grooves, weil die Hände durch Pausen weiterlaufen.
   - **Wechselschlag:** Jeder gespielte Schlag wechselt die Hand. Gut für Rudiments und Fills.
   - **Führhand:** Rechts oder Links.
@@ -150,6 +172,9 @@ Wo beide Hände gleichzeitig spielen, bleibt das Feld leer. Einzelne Felder lass
 
 ### 3.1 Grundfunktionen
 
+Alle folgenden Funktionen liegen unter **⚙ Takt**. Häufiges geht auch direkt: **＋** fügt einen Takt ein, **↶** macht rückgängig.
+
+
 | Knopf | Wirkung |
 |---|---|
 | **＋ Takt** | Leeren Takt mit gleicher Taktart nach dem aktuellen einfügen |
@@ -162,10 +187,10 @@ Wo beide Hände gleichzeitig spielen, bleibt das Feld leer. Einzelne Felder lass
 ### 3.2 Mehrere Takte auf einmal
 
 1. Ersten Takt auswählen.
-2. **⬚ Bereich** tippen.
+2. **⚙ Takt → ⬚ Bereich** tippen (das Fenster schließt sich).
 3. In der Notenansicht auf den letzten Takt des Bereichs tippen. Angezeigt wird z. B. „Takte 5–8 markiert (4)“.
 
-Jetzt wirken **Duplizieren**, **Leeren**, **Löschen**, **Kopieren** und **Ausschneiden** auf den ganzen Bereich.
+Jetzt wirken **Duplizieren**, **Leeren**, **Löschen**, **Kopieren** und **Ausschneiden** (unter ⚙ Takt) auf den ganzen Bereich.
 
 **Kopieren und Einfügen**
 
@@ -192,21 +217,21 @@ Im Noteneditor eines Faulenzer-Takts:
 
 | Bedienelement | Wirkung |
 |---|---|
-| **𝄆 Anfang** | Wiederholung beginnt mit diesem Takt (Doppelstrich mit Punkten) |
-| **𝄇 Ende (2×/3×/4×)** | Wiederholung endet hier, Anzahl der Durchgänge |
+| **\|: Anfang** | Wiederholung beginnt mit diesem Takt (Doppelstrich mit Punkten) |
+| **:\| Ende (2×/3×/4×)** | Wiederholung endet hier, Anzahl der Durchgänge |
 | **Klammer: 1./2./3.** | Takt gehört zur 1., 2. oder 3. Klammer (Volta) |
 
 **Beispiel:** `|: A B |1. C :|2. D` einrichten
 
-1. Takt A: **𝄆 Anfang**
-2. Takt C: **1. Klammer** und **𝄇 Ende (2×)**
+1. Takt A: **|: Anfang**
+2. Takt C: **1. Klammer** und **:| Ende (2×)**
 3. Takt D: **2. Klammer**
 
 Gespielt wird A B C A B D. Ohne 𝄆 Anfang springt die Wiederholung zum Stückanfang bzw. hinter das vorige Wiederholungsende.
 
 ### 3.5 Tempowechsel im Stück
 
-Im Feld **Tempo ab hier** ein neues Tempo eintragen, z. B. 140. Ab diesem Takt gilt das neue Tempo; im Notenbild steht „♩ = 140“.
+Unter **⚙ Takt → Tempo ab hier** ein neues Tempo eintragen, z. B. 140. Ab diesem Takt gilt das neue Tempo; im Notenbild steht „♩ = 140“.
 
 - **sofort:** Das Tempo springt am Taktanfang.
 - **allmählich über 1/2/4/8 Takte:** Das Tempo steigt bzw. fällt in den Takten davor gleichmäßig an. Im Notenbild steht „accel.“ (schneller) oder „rit.“ (langsamer) mit gestrichelter Linie.
@@ -241,9 +266,12 @@ Während der Wiedergabe läuft eine Markierung durch die Noten. Die Statuszeile 
 
 - **▶ ab hier** im Editor (neben der Taktnummer) spielt ab dem gewählten Takt bis zum Ende – Wiederholungen ab dieser Stelle werden berücksichtigt.
 - Am Rechner: **Doppelklick** auf einen Takt in der Notenansicht.
-- Dauerhaft: unter *Üben & Einstellungen → Abspielen* **Ab ausgewähltem Takt** wählen; dann startet auch ▶ unten immer beim gewählten Takt.
+- Dauerhaft: unter **⚙ → Abspielen** **Ab ausgewähltem Takt** wählen; dann startet auch ▶ unten immer beim gewählten Takt.
 
 ### 4.2 Üben & Einstellungen
+
+Über **⚙** in der Kopfzeile.
+
 
 | Einstellung | Wirkung |
 |---|---|
@@ -275,7 +303,7 @@ Ein E-Drum mit USB-MIDI kann Noten direkt ins Raster einspielen.
 **So geht's**
 
 1. E-Drum per USB anschließen (am Tablet mit USB-C-OTG-Adapter).
-2. **Üben & Einstellungen → E-Drum → Verbinden**, Zugriff erlauben. Der Gerätename erscheint, der Punkt blinkt bei jedem Schlag.
+2. **⚙ → E-Drum → Verbinden**, Zugriff erlauben. Der Gerätename erscheint, der Punkt blinkt bei jedem Schlag.
 3. Im Song den Bereich und das **passende Raster** einstellen (z. B. 16tel). Jeder Schlag landet auf der nächstgelegenen Rasterposition.
 4. **Aufnahme** anhaken.
 5. **▶** starten (mit Einzählen) und mitspielen. Die Statuszeile zeigt „● Aufnahme“.
@@ -445,25 +473,19 @@ docker run --rm -v schlagzeug_drum-notes-data:/data -v "$PWD":/backup alpine \
 
 ## 12. Kurzreferenz
 
-**Tastatur (Rechner)**
-
-| Taste | Funktion |
-|---|---|
-| Leertaste | Abspielen / Stopp |
-| Strg/⌘ + Z | Rückgängig |
-| Enter | Umbenennen bzw. neuen Ordner bestätigen |
+**Tastatur (Rechner):** siehe [Abschnitt 2.6](#26-schreiben-mit-der-tastatur-rechner) oder **⌨** in der App.
 
 **Typische Abläufe**
 
 | Ziel | Schritte |
 |---|---|
 | Nur den Refrain anhören | Ersten Refrain-Takt wählen → **▶ ab hier** |
-| Neuen Groove schreiben | 📁 Songs → ＋ Song → Leeres Blatt → Raster wählen → Werkzeug Schlag → in die Noten tippen |
-| Fill aus 16tel-Triolen | Takt wählen → Raster pro Schlag auf Tri bzw. Sext → Snare/Toms setzen → ✋ Handsatz → Wechselschlag |
-| Chorus wiederholen | Erster Takt 𝄆 Anfang → letzter Takt 𝄇 Ende (2×) |
-| Groove 7× wiederholen | Groove-Takt → nächster Takt Faulenzer 1 Takt → ⬚ Bereich → Kopieren → Einfügen |
-| Medley-Teil markieren | Takt wählen → ▢ Nr. markieren → Beschriftung „Song 2“ |
-| Schneller werden zum Refrain | Refrain-Takt wählen → Tempo ab hier 140 → allmählich über 2 Takte |
+| Neuen Groove schreiben | 📁 Songs → ＋ Song → Leeres Blatt → Raster wählen → in die Spuren tippen oder mit der Tastatur schreiben |
+| Fill aus 16tel-Triolen | Takt wählen → Raster pro Schlag auf Tri bzw. Sext → Snare/Toms setzen → ✋ → Wechselschlag |
+| Chorus wiederholen | Erster Takt ⚙ Takt → \|: Anfang → letzter Takt :\| Ende (2×) |
+| Groove 7× wiederholen | Nächster Takt → ⚙ Takt → Faulenzer 1 Takt → Kopieren → mehrmals Einfügen |
+| Medley-Teil markieren | Takt wählen → ⚙ Takt → ▢ Nr. markieren → Beschriftung „Song 2“ |
+| Schneller werden zum Refrain | Refrain-Takt wählen → ⚙ Takt → Tempo ab hier 140 → allmählich über 2 Takte |
 | Kompaktes Notenblatt | ⇩ Export → Notengröße 60 %, 4 Takte pro Zeile, Mehrtaktpausen an → PDF erstellen |
 
 ---

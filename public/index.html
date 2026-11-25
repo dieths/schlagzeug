@@ -36,7 +36,7 @@ select,input[type=number]{border:1px solid var(--line);background:var(--panel);b
 .row+.row{margin-top:8px}
 .sp{flex:1}
 .muted{color:var(--muted);font-size:13px}
-#mlabel{font-weight:700;min-width:64px;text-align:center}
+#mlabel{font-weight:700;min-width:64px;text-align:center;white-space:nowrap}
 #gridwrap{overflow-x:auto;margin-top:8px;padding-bottom:4px}
 #grid{display:grid;gap:3px 2px;min-width:min-content}
 .lab{font-size:12px;color:var(--muted);display:flex;align-items:center;position:sticky;left:0;background:var(--panel);z-index:2;padding-right:4px;white-space:nowrap}
@@ -109,6 +109,39 @@ label.fld{display:block;margin-top:10px}label.fld span{display:block;font-size:1
 .cell.gh{background:var(--muted);color:var(--panel);font-weight:500}
 .cell sup{font-size:9px;line-height:1;margin-left:1px;align-self:flex-start;margin-top:3px}
 .cell.stk{background:transparent;border:1px dashed var(--line);color:var(--acc2);height:26px}
+
+/* ---- Arbeitsfläche ---- */
+html,body{height:100%}
+body{display:flex;flex-direction:column;height:100dvh;overflow:hidden;padding-bottom:0!important}
+header{flex:none}
+#scoreCard{flex:1 1 auto;min-height:90px;overflow:auto;margin-top:4px;margin-bottom:4px}
+#edPanel{flex:none;max-height:64vh;overflow:auto;margin-top:0;margin-bottom:6px;padding:8px}
+#edPanel.folded #ned,#edPanel.folded .edtools{display:none}
+#tp{position:static!important;flex:none}
+.edtop{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
+.edtop .btn{padding:6px 9px}
+.edtools{flex-wrap:nowrap;margin-top:6px}
+.edtools .tools{flex:1;min-width:0}
+.ovl{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;z-index:45;align-items:flex-end;justify-content:center}
+.ovl.open{display:flex}
+.ovs{background:var(--panel);border-radius:18px 18px 0 0;width:100%;max-width:560px;max-height:85vh;overflow:auto;padding:16px 14px calc(16px + env(safe-area-inset-bottom))}
+.ovs h2{font-size:18px}.ovs h4{margin:14px 0 6px;font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+/* ---- Instrument-Spuren ---- */
+#ned{overflow-x:auto;overflow-y:hidden;margin-top:6px;border:1px solid var(--line);border-radius:12px;background:var(--bg);padding:2px 0 4px}
+.nin{position:relative}
+#nedSvg{display:block;color:var(--ink);cursor:pointer}
+.cnts{position:relative;height:16px}
+.cn{position:absolute;top:0;font-size:11px;color:var(--muted);text-align:center}
+.cn.b{color:var(--ink);font-weight:700}.cn.kcur{color:var(--acc2);font-weight:800}
+.lane{position:relative;height:38px}
+.llab{position:sticky;left:0;z-index:3;display:flex;align-items:center;width:56px;height:100%;padding-left:6px;font-size:12px;color:var(--muted);background:var(--bg)}
+.cell.lc{position:absolute;top:3px;height:32px}
+.cell.lc.kcur{box-shadow:inset 0 0 0 2px var(--acc2)}
+.cell.lc.stk{height:28px}
+.lmore{height:auto;padding:6px 0 0 6px}
+.kc{fill:var(--acc2);fill-opacity:.10}
+.keys td{padding:3px 8px 3px 0;vertical-align:top}.keys kbd{display:inline-block;min-width:22px;text-align:center;border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:1px 5px;font:12px ui-monospace,Menlo,monospace;background:var(--bg)}
+@media (pointer:coarse){#bKeys{display:none}}
 </style>
 </head>
 <body>
@@ -117,21 +150,48 @@ label.fld{display:block;margin-top:10px}label.fld span{display:block;font-size:1
   <span id="syncDot" class="sync local" role="button" tabindex="0" aria-label="Speicherstatus"></span>
   <button class="btn" id="bPdf">⇩ Export</button>
   <button class="btn" id="bSongs">📁 Songs</button>
+  <button class="btn" id="bSet" aria-label="Üben und Einstellungen" title="Üben & Einstellungen">⚙</button>
 </header>
 
-<div class="card">
+<main id="scoreCard" class="card">
   <div id="score"></div>
-</div>
+</main>
 
-<div class="card">
-  <div class="row">
+<section id="edPanel" class="card">
+  <div class="row edtop">
     <button class="btn" id="bPrev" aria-label="Vorheriger Takt">◀</button>
     <span id="mlabel"></span>
     <button class="btn" id="bNext" aria-label="Nächster Takt">▶</button>
     <button class="btn" id="bFromHere" title="Ab diesem Takt abspielen">▶ ab hier</button>
+    <button class="btn" id="bTakt" title="Taktart, Wiederholungen, Tempo, Kopieren …">⚙ Takt</button>
+    <button class="btn" id="bAddQ" title="Leeren Takt dahinter einfügen" aria-label="Takt einfügen">＋</button>
+    <span class="muted" id="rangeInfo"></span>
     <span class="sp"></span>
-    <button class="btn" id="bUndo">↶ Zurück</button>
+    <button class="btn" id="bKeys" title="Tastatur-Kürzel" aria-label="Tastatur-Kürzel">⌨</button>
+    <button class="btn" id="bUndo" title="Rückgängig" aria-label="Rückgängig">↶</button>
+    <button class="btn" id="bFold" title="Bearbeitung ein-/ausklappen" aria-label="Bearbeitung einklappen">▾</button>
   </div>
+  <div class="row edtools"><div class="tools" id="tools"></div><button class="btn" id="bStick" title="Handsatz automatisch">✋</button></div>
+  <div id="ned"></div>
+</section>
+
+<div id="tp">
+  <div class="row">
+    <button id="play" aria-label="Abspielen">▶</button>
+    <button class="btn" id="bMinus" aria-label="Langsamer">−</button>
+    <div style="text-align:center"><div class="muted" style="font-size:11px;line-height:1">♩ =</div><input type="number" id="bpm" min="30" max="300" inputmode="numeric"></div>
+    <button class="btn" id="bPlus" aria-label="Schneller">+</button>
+    <button class="btn" id="bTap">Tap</button>
+    <button class="btn" id="tClick">Klick</button>
+    <button class="btn" id="tDrums">Drums</button>
+  </div>
+  <div id="status"></div>
+</div>
+
+
+<div id="ovTakt" class="ovl"><div class="ovs">
+  <div class="row"><h2 style="flex:1;margin:0">Takt <span id="ovNr"></span></h2><button class="btn" data-ovclose>Fertig</button></div>
+  <h4>Taktart &amp; Raster</h4>
   <div class="row">
     <span class="muted">Taktart</span>
     <select id="sNum"></select><span>/</span>
@@ -139,6 +199,7 @@ label.fld{display:block;margin-top:10px}label.fld span{display:block;font-size:1
     <span class="muted" style="margin-left:6px">Raster (alle)</span>
     <select id="sAll"></select>
   </div>
+  <h4>Takte</h4>
   <div class="row">
     <button class="btn" id="bAdd">＋ Takt</button>
     <button class="btn" id="bDup">⧉ Duplizieren</button>
@@ -152,7 +213,6 @@ label.fld{display:block;margin-top:10px}label.fld span{display:block;font-size:1
     <button class="btn" id="bCopy">Kopieren</button>
     <button class="btn" id="bCut">Ausschneiden</button>
     <button class="btn" id="bPaste">Einfügen</button>
-    <span class="muted" id="rangeInfo"></span>
   </div>
   <div class="row">
     <select id="sRep" aria-label="Faulenzer"><option value="0">Faulenzer: aus</option><option value="1">% 1 Takt wiederholen</option><option value="2">% 2 Takte wiederholen</option></select>
@@ -171,25 +231,11 @@ label.fld{display:block;margin-top:10px}label.fld span{display:block;font-size:1
   <div class="row">
     <input id="mLabel" class="minp" placeholder="Beschriftung, z. B. Intro, Teil B, Song 2" maxlength="80" aria-label="Beschriftung des Takts">
   </div>
-  <div class="row" style="margin-top:12px">
-    <span class="muted">Werkzeug</span><span class="sp"></span>
-    <select id="sInst" aria-label="Instrument"></select>
-    <button class="btn" id="bStick">✋ Handsatz</button>
-  </div>
-  <div class="tools" id="tools"></div>
-  <div id="ned"></div>
-  <div class="hint" id="nedHint">In die Noten tippen: Finger gedrückt halten und verschieben, die Vorschau zeigt Instrument und Zählzeit, beim Loslassen wird gesetzt. Unten in der Sticking-Zeile tippen wechselt R/L.</div>
-  <details id="gridDet" style="margin-top:10px">
-    <summary>Raster-Ansicht</summary>
-    <div class="row" style="margin-top:8px"><span class="sp"></span><button class="btn" id="bFocus">Nur Snare</button></div>
-    <div id="gridwrap"><div id="grid"></div></div>
-  </details>
-  <div class="legend">Das Raster lässt sich über jedem Schlag einzeln umstellen, so kannst du 16tel, Triolen, Quintolen, Sextolen und 32tel mischen. Mit „½ + ½“ oder „⅓ ⅓ ⅓“ teilst du einen Schlag und gibst jedem Teil ein eigenes Raster, z. B. Achtel + 16tel-Triole. Ein Werkzeug wählen und in die Noten oder auf die Felder der Raster-Ansicht tippen, ein zweiter Tipp nimmt es wieder weg. Die Zeile „Sticking“ wechselt zwischen R, L und leer, „✋ Handsatz“ schreibt sie automatisch aus.</div>
-</div>
+  <p class="muted" style="margin:10px 0 0">Das Raster lässt sich auch über jedem Schlag einzeln umstellen (Feld über dem Schlag), z. B. 16tel, Triolen, Quintolen oder geteilt „½ + ½“ / „⅓ ⅓ ⅓“.</p>
+</div></div>
 
-<div class="card">
-  <details id="practice">
-    <summary>Üben &amp; Einstellungen</summary>
+<div id="ovSet" class="ovl"><div class="ovs">
+  <div class="row"><h2 style="flex:1;margin:0">Üben &amp; Einstellungen</h2><button class="btn" data-ovclose>Fertig</button></div>
     <div class="row" style="margin-top:10px">
       <span class="muted">Abspielen</span>
       <select id="sMode"><option value="all">Ganzer Song</option><option value="from">Ab ausgewähltem Takt</option><option value="sel">Nur aktueller Takt</option><option value="range">Takt-Bereich</option></select>
@@ -224,21 +270,7 @@ label.fld{display:block;margin-top:10px}label.fld span{display:block;font-size:1
     <div class="row"><span class="muted" style="width:80px">Raumklang</span><input type="range" id="vR" min="0" max="0.6" step="0.05"></div>
     <p class="muted" style="margin:6px 0 0">Aufnahmen: Versilian Community Sample Library (VCSL), CC0.</p>
     <p class="muted" style="margin:10px 0 0">Tempo bezieht sich immer auf Viertel (♩). Bei x/8-Takten klickt das Metronom auf jede Achtel und betont den Anfang jeder Gruppe. Am iPhone den Lautlos-Schalter ausschalten, sonst bleibt es stumm.</p>
-  </details>
-</div>
-
-<div id="tp">
-  <div class="row">
-    <button id="play" aria-label="Abspielen">▶</button>
-    <button class="btn" id="bMinus" aria-label="Langsamer">−</button>
-    <div style="text-align:center"><div class="muted" style="font-size:11px;line-height:1">♩ =</div><input type="number" id="bpm" min="30" max="300" inputmode="numeric"></div>
-    <button class="btn" id="bPlus" aria-label="Schneller">+</button>
-    <button class="btn" id="bTap">Tap</button>
-    <button class="btn" id="tClick">Klick</button>
-    <button class="btn" id="tDrums">Drums</button>
-  </div>
-  <div id="status"></div>
-</div>
+</div></div>
 
 <div id="modal"><div class="sheet" id="sheet"></div></div>
 <div id="toast"></div>
@@ -567,16 +599,14 @@ function notationRows(W,mode,ms,o){ms=ms||song.measures;o=o||{};const print=mode
 }
 
 /* ---------- Editor ---------- */
-function renderInstSel(){const v=$('#sInst').value;$('#sInst').innerHTML='<option value="">Instrument: automatisch</option>'+INST.map(x=>`<option value="${x.id}">Nur ${x.name}</option>`).join('');$('#sInst').value=opt.lockInst||'';}
-function renderTools(){$('#tools').innerHTML=TOOLS.map(([id,l])=>`<button class="tool${id===tool?' on':''}" data-t="${id}">${l}</button>`).join('');$('#bFocus').classList.toggle('on',opt.focus);}
+function renderInstSel(){}
+function renderTools(){$('#tools').innerHTML=TOOLS.map(([id,l])=>`<button class="tool${id===tool?' on':''}" data-t="${id}">${l}</button>`).join('');}
 $('#tools').addEventListener('click',e=>{const b=e.target.closest('[data-t]');if(!b)return;tool=b.dataset.t;renderTools();});
-$('#sInst').onchange=()=>{opt.lockInst=$('#sInst').value;persist();};
-$('#bFocus').onclick=()=>{opt.focus=!opt.focus;renderTools();renderEditor();persist();};
 function cellHtml(x,s,o,f){if(!s)return '';const l=x.st[s];return (l==='( )'?'(●)':l)+(o?`<sup>${ORNMARK[o]}</sup>`:'')+(f&1?'<sup>L</sup>':'')+(f&2?'<sup>‿</sup>':'');}
 function cellCls(x,s){if(!s)return '';const l=x.st[s];return l==='>'?' acc':l==='( )'?' gh':' on';}
 function renderEditor(){
  const m=song.measures[sel];const K=dk(m.den);
- $('#mlabel').textContent=`Takt ${sel+1} / ${song.measures.length}`;
+ $('#mlabel').textContent=`Takt ${sel+1}/${song.measures.length}`;
  $('#bPrev').disabled=sel===0;$('#bNext').disabled=sel===song.measures.length-1;
  $('#bDel').disabled=song.measures.length-(rHi()-rLo()+1)<1;$('#bML').disabled=sel===0;$('#bMR').disabled=sel===song.measures.length-1;
  $('#sNum').innerHTML=Array.from({length:16},(_,i)=>`<option ${i+1===m.num?'selected':''}>${i+1}</option>`).join('');
@@ -585,25 +615,7 @@ function renderEditor(){
  $('#sRep').value=m.rep===1?'1':rp===2?'2':'0';$('#bRS').classList.toggle('on',!!m.repStart);$('#sRE').value=String(m.repEnd||0);$('#sVo').value=String(m.volta||0);if(document.activeElement!==$('#mTempo'))$('#mTempo').value=m.tempo?tAbs(m):'';$('#mRamp').value=String(m.tempo?m.tempo.ramp||0:0);$('#mRamp').disabled=!m.tempo;$('#bBox').classList.toggle('on',!!m.box);if(document.activeElement!==$('#mLabel'))$('#mLabel').value=m.label||'';
  const uni=!Array.isArray(m.subs[0])&&m.subs.every(k=>k===m.subs[0]);
  $('#sAll').innerHTML=(uni?'':'<option value="" selected>gemischt</option>')+SUBS[K].map(k=>`<option value="${k}" ${uni&&k===m.subs[0]?'selected':''}>${SUBN[K][k]}</option>`).join('');
- if(rp){const si=srcIndex(song.measures,sel);const g0=$('#grid');g0.style.gridTemplateColumns='1fr';g0.innerHTML=`<p class="muted">Faulenzer-Takt – die Noten kommen aus Takt ${si+1}.</p>`;curCol=-1;renderNoteEditor();return;}
- const rows=opt.focus?INST.filter(x=>x.id==='SN'):INST;
- const c=opt.focus?22:16,gap=2,LW=opt.focus?50:58;
- const avail=$('#gridwrap').clientWidth-LW-4;const inf=getInfo(m);const maxk=Math.max(...inf.map(q=>q.k*q.P));
- const B=Math.max(maxk*(c+gap),Math.floor(avail/m.subs.length));
- const cols=[LW+'px'];inf.forEach(q=>cols.push((B/(q.k*q.P)-gap).toFixed(2)+'px'));
- const g=$('#grid');g.style.gridTemplateColumns=cols.join(' ');
- let h='<div class="lab"></div>';const split=m.subs.some(Array.isArray);
- m.subs.forEach((k,b)=>{const P=Array.isArray(k)?k.length:1;h+=`<select class="bsel" data-b="${b}" style="grid-column:span ${beatLen(m,b)}" aria-label="Raster Schlag ${b+1}">`+SUBS[K].map(q=>`<option value="${q}" ${P===1&&q===k?'selected':''}>${SUBS_SHORT[K][q]}</option>`).join('')+`<option value="h" ${P===2?'selected':''}>½ + ½</option><option value="t" ${P===3?'selected':''}>⅓ ⅓ ⅓</option></select>`;});
- if(split){h+='<div class="lab muted" style="font-size:10px">Teile</div>';
-  m.subs.forEach((k,b)=>{if(!Array.isArray(k)){h+=`<div style="grid-column:span ${beatLen(m,b)}"></div>`;return;}
-   k.forEach((q,p)=>{h+=`<select class="bsel psel" data-b="${b}" data-p="${p}" style="grid-column:span ${q}" aria-label="Raster Schlag ${b+1} Teil ${p+1}">`+PARTK[k.length].map(r=>`<option value="${r}" ${r===q?'selected':''}>${partName(m,k.length,r)}</option>`).join('')+'</select>';});});}
- h+='<div class="lab"></div>';
- inf.forEach((q,i)=>{const l=countLabel(m,q);h+=`<div class="cnt${q.j===0?' b':''}" data-c="${i}">${l}</div>`;});
- rows.forEach(x=>{h+=`<div class="lab">${x.name}</div>`;
-  inf.forEach((q,i)=>{const s=m.notes[x.id][i],o=m.orn[x.id][i];h+=`<div class="cell${q.b%2?' alt':''}${cellCls(x,s)}" data-id="${x.id}" data-i="${i}" data-c="${i}">${cellHtml(x,s,o,fxOf(m,x.id,i))}</div>`;});});
- h+=`<div class="lab">Sticking</div>`;
- inf.forEach((q,i)=>{h+=`<div class="cell stk" data-stk="${i}" data-c="${i}">${['','R','L'][m.stick[i]]}</div>`;});
- g.innerHTML=h;curCol=-1;
+ curCol=-1;$('#ovNr').textContent=sel+1;
  renderNoteEditor();
 }
 /* ---------- Noteneditor (direkt in den Noten) ---------- */
@@ -615,23 +627,41 @@ function renderNoteEditor(){
  const m=song.measures[sel];const box=$('#ned');
  if(repOff(m)){const pair=m.rep===2?[sel,sel+1]:m.rep===-2?[sel-1,sel]:[sel];const srcs=pair.map(i=>srcIndex(song.measures,i)+1);
   box.innerHTML=`<div class="repinfo"><div class="big">%${pair.length===2?'²':''}</div><p>${pair.length===2?`Takte ${pair[0]+1}–${pair[1]+1} wiederholen die Takte ${srcs[0]}–${srcs[1]}`:`Takt ${sel+1} wiederholt Takt ${srcs[0]}`} (Faulenzer).</p><div class="row" style="justify-content:center"><button class="btn" id="bRepOut">Ausschreiben</button><button class="btn" id="bRepOff">Faulenzer entfernen</button></div></div>`;
-  $('#bRepOut').onclick=()=>repWriteOut(pair);$('#bRepOff').onclick=()=>setRep(0);NE.L=null;return;}const avail=Math.max(260,box.clientWidth-2);
- const r=notationRows(avail/1.35,'edit',[m]);const row=r.svgs[0];const L=r.layout[0];
- const Z=Math.max(1.35,avail/row.w);NE.Z=Z;NE.L=L;NE.rw=row.w;
+  $('#bRepOut').onclick=()=>repWriteOut(pair);$('#bRepOff').onclick=()=>setRep(0);NE.L=null;return;}const LW=58,avail=Math.max(240,box.clientWidth-4)-LW;
+ const r=notationRows(avail/1.15,'edit',[m]);const row=r.svgs[0];const L=r.layout[0];
+ const Z=Math.min(1.4,Math.max(1.05,avail/row.w));NE.Z=Z;NE.L=L;NE.rw=row.w;
+ const W=Math.ceil(row.w*Z),inf=getInfo(m),n=inf.length;CUR.i=Math.max(0,Math.min(CUR.i,n-1));
  const K=dk(m.den);const split=m.subs.some(Array.isArray);let bh='';
- m.subs.forEach((k,b)=>{const x=(L.bx+L.off[b]*L.f)*Z,w=L.bw[b]*L.f*Z;
+ m.subs.forEach((k,b)=>{const x=LW+(L.bx+L.off[b]*L.f)*Z,w=L.bw[b]*L.f*Z;
   bh+=beatSelHtml(m,K,b,`left:${x+1}px;width:${w-3}px;top:2px`);
   if(Array.isArray(k))k.forEach((q,p)=>{const pw=w/k.length;bh+=beatSelHtml(m,K,b,`left:${x+1+p*pw}px;width:${pw-3}px;top:30px`,'',p);});});
- const ph=`<rect id="phE" class="ph" x="0" y="${yP(10)-6}" width="0" height="${yP(-2)-yP(10)+12}" rx="3" style="display:none"/>`;
- box.innerHTML=`<div id="nedBeats" style="width:${row.w*Z}px;height:${split?58:30}px">${bh}</div><svg id="nedSvg" width="${row.w*Z}" height="${H*Z}" viewBox="0 0 ${row.w} ${H}">`+
-  `<rect x="0" y="${H-24}" width="${row.w}" height="22" fill="var(--acc2)" fill-opacity=".06"/><text x="4" y="${H-9}" font-size="8" fill="currentColor" fill-opacity=".45">Sticking</text>`+ph+`<g pointer-events="none">${row.body}</g><g id="ghost" pointer-events="none"></g></svg>`;
- const svg=$('#nedSvg');
- svg.addEventListener('pointerdown',e=>{NE.down=true;try{svg.setPointerCapture(e.pointerId);}catch(_){}ghostAt(e);});
- svg.addEventListener('pointermove',e=>{if(NE.down||e.pointerType==='mouse')ghostAt(e);});
- svg.addEventListener('pointerup',e=>{if(!NE.down)return;NE.down=false;ghostAt(e);const t=NE.tgt;clearGhost();if(t)commitTarget(t);});
- svg.addEventListener('pointercancel',()=>{NE.down=false;clearGhost();});
- svg.addEventListener('pointerleave',e=>{if(e.pointerType==='mouse'&&!NE.down)clearGhost();});
+ const cx=i=>LW+(L.xs[i]-4)*Z,cw=i=>Math.max(14,L.ws[i]*Z-2);const VH=128;
+ let h=`<div class="nin" style="width:${LW+W+4}px"><div id="nedBeats" style="height:${split?58:30}px">${bh}</div>`;
+ const showN=opt.edNotes!=null?opt.edNotes:(innerHeight>=760&&innerWidth>=600);
+ if(showN)h+=`<svg id="nedSvg" style="margin-left:${LW}px" width="${W}" height="${Math.round(VH*Z)}" viewBox="0 0 ${row.w} ${VH}"><rect id="kcE" class="kc" x="0" y="${yP(10)-8}" width="0" height="${yP(-2)-yP(10)+16}" rx="3"/><rect id="phE" class="ph" x="0" y="${yP(10)-6}" width="0" height="${yP(-2)-yP(10)+12}" rx="3" style="display:none"/><g pointer-events="none">${row.body}</g></svg>`;
+ h+=`<div class="cnts">`+inf.map((q,i)=>`<span class="cn${q.j===0?' b':''}" data-c="${i}" data-k="${i}" style="left:${cx(i)}px;width:${cw(i)}px">${countLabel(m,q)}</span>`).join('')+`</div>`;
+ laneList().forEach(x=>{h+=`<div class="lane"><span class="llab">${x.name}</span>`+inf.map((q,i)=>{const sv=m.notes[x.id][i];return `<div class="cell lc${q.b%2?' alt':''}${cellCls(x,sv)}" data-id="${x.id}" data-i="${i}" data-c="${i}" data-k="${i}" style="left:${cx(i)}px;width:${cw(i)}px">${cellHtml(x,sv,m.orn[x.id][i],fxOf(m,x.id,i))}</div>`;}).join('')+`</div>`;});
+ h+=`<div class="lane"><span class="llab">Sticking</span>`+inf.map((q,i)=>`<div class="cell lc stk" data-stk="${i}" data-c="${i}" data-k="${i}" style="left:${cx(i)}px;width:${cw(i)}px">${['','R','L'][m.stick[i]]}</div>`).join('')+`</div>`;
+ h+=`<div class="lane lmore"><button class="btn sm" id="bLanes">${opt.allLanes?'Nur benutzte Instrumente':'＋ Alle Instrumente'}</button> <button class="btn sm" id="bEdN">${showN?'Noten hier ausblenden':'♪ Noten hier zeigen'}</button></div></div>`;
+ box.innerHTML=h;curCol=-1;
+ $('#bLanes').onclick=()=>{opt.allLanes=!opt.allLanes;persist();renderNoteEditor();};
+ $('#bEdN').onclick=()=>{opt.edNotes=!showN;persist();renderNoteEditor();};
+ if(showN)$('#nedSvg').onclick=e=>{const rc=$('#nedSvg').getBoundingClientRect();const x=(e.clientX-rc.left)/Z;let b=0,bd=1e9;L.xs.forEach((xx,k)=>{const d=Math.abs(xx-x);if(d<bd){bd=d;b=k;}});setCursor(b);};
+ drawCursor();
 }
+const CUR={i:0};
+function laneList(){const used=new Set();[sel-1,sel,sel+1].forEach(mi=>{const mm=song.measures[mi];if(!mm)return;const s0=srcOf(song.measures,mi)||mm;INST.forEach(x=>{if(s0.notes[x.id]&&s0.notes[x.id].some(Boolean))used.add(x.id);});});
+ return INST.filter(x=>opt.allLanes||['HH','SN','BD'].includes(x.id)||used.has(x.id));}
+function drawCursor(){document.querySelectorAll('#ned .kcur').forEach(e=>e.classList.remove('kcur'));document.querySelectorAll(`#ned [data-k="${CUR.i}"]`).forEach(e=>e.classList.add('kcur'));
+ const r=$('#kcE');if(r&&NE.L){r.setAttribute('x',NE.L.xs[CUR.i]-6);r.setAttribute('width',Math.max(10,NE.L.ws[CUR.i]));}
+ const c=document.querySelector(`#ned .cn[data-k="${CUR.i}"]`);if(c){const box=$('#ned'),cr=c.getBoundingClientRect(),br=box.getBoundingClientRect();if(cr.left<br.left+60||cr.right>br.right-10)box.scrollLeft+=cr.left-br.left-box.clientWidth/2;}}
+function setCursor(i){CUR.i=i;drawCursor();}
+$('#ned').addEventListener('click',e=>{const m=song.measures[sel];if(repOff(m))return;
+ const sc=e.target.closest('[data-stk]');
+ if(sc){const i=+sc.dataset.stk;pushUndo();m.stick[i]=(m.stick[i]+1)%3;CUR.i=i;renderNotation();renderNoteEditor();persist();return;}
+ const c=e.target.closest('.lc[data-id]');if(!c)return;const id=c.dataset.id,i=+c.dataset.i;CUR.i=i;
+ pushUndo();if(!applyTool(m,id,i)){undoStack.pop();drawCursor();return;}
+ const sv=m.notes[id][i];if(sv&&!P.on)preview(id,sv,m.orn[id][i]);renderNotation();renderNoteEditor();persist();});
 function instAtY(y){const lock=$('#sInst').value;if(lock)return IMAP[lock];const pos=(SB-y)/4;let best=null,bd=99;INST.forEach(x=>{const d=Math.abs(x.pos-pos);if(d<bd){bd=d;best=x;}});return best;}
 function targetAt(e){if(!NE.L)return null;const svg=$('#nedSvg');const r=svg.getBoundingClientRect();const x=(e.clientX-r.left)/NE.Z,y=(e.clientY-r.top)/NE.Z;const L=NE.L;
  if(x<L.xs[0]-22||x>L.end+4)return null;
@@ -670,16 +700,6 @@ function applyTool(m,id,i){const x=IMAP[id],a=m.notes[id],o=m.orn[id];const L=l=
   case 'flam':case 'drag':case 'buzz':{if(!(x.orn||(x.grace&&tool!=='buzz')))return no(tool==='buzz'?'Wirbel gibt es bei Snare und Toms':'Vorschläge gibt es bei Snare, Toms, Hi-Hat, Ride und Crash');const v={flam:1,drag:2,buzz:3}[tool];if(a[i]&&o[i]===v)o[i]=0;else{o[i]=v;if(!a[i])a[i]=1;}break;}
   case 'erase':if(!a[i])return false;a[i]=0;o[i]=0;break;}
  if(!a[i]){o[i]=0;if(m.fx&&m.fx[id])m.fx[id][i]=0;}return true;}
-$('#grid').addEventListener('click',e=>{const m=song.measures[sel];
- const sc=e.target.closest('[data-stk]');
- if(sc){const i=+sc.dataset.stk;pushUndo();m.stick[i]=(m.stick[i]+1)%3;sc.textContent=['','R','L'][m.stick[i]];refreshNotation();persist();return;}
- const c=e.target.closest('.cell');if(!c)return;const id=c.dataset.id,i=+c.dataset.i;const x=IMAP[id];
- pushUndo();if(!applyTool(m,id,i)){undoStack.pop();return;}
- const s=m.notes[id][i],o=m.orn[id][i];
- c.className='cell'+(getInfo(m)[i].b%2?' alt':'')+cellCls(x,s);c.innerHTML=cellHtml(x,s,o,fxOf(m,id,i));
- if(s&&!P.on)preview(id,s,o);
- refreshNotation();persist();});
-$('#grid').addEventListener('change',e=>gridChange(e));
 function gridChange(e){const s=e.target.closest('.bsel');if(!s)return;const m=song.measures[sel];const subs=m.subs.map(x=>Array.isArray(x)?x.slice():x);const b=+s.dataset.b;
  if(s.classList.contains('psel'))subs[b][+s.dataset.p]=+s.value;
  else if(s.value==='h')subs[b]=m.den===8?[1,2]:[1,3];
@@ -691,7 +711,7 @@ $('#score').addEventListener('click',e=>{const r=e.target.closest('.mbg');if(!r)
  if(RS.on){RS.on=false;}selectMeasure(mi);updRangeUI();});
 function getClip(){const c=LS.get('dn.clip');return Array.isArray(c)&&c.length?c:null;}
 function rangeOps(fn){pushUndo();fn(rLo(),rHi());RS.on=false;RS.picking=false;fixRepeats();sel=Math.max(0,Math.min(sel,song.measures.length-1));renderAll();persist();updRangeUI();}
-$('#bRange').onclick=()=>{if(RS.on){RS.on=false;RS.picking=false;}else{RS.on=true;RS.a=RS.b=sel;RS.picking=true;}updRangeUI();};
+$('#bRange').onclick=()=>{if(RS.on){RS.on=false;RS.picking=false;}else{RS.on=true;RS.a=RS.b=sel;RS.picking=true;ovClose();}updRangeUI();};
 $('#bCopy').onclick=()=>{const l=rLo(),h=rHi();LS.set('dn.clip',JSON.parse(JSON.stringify(song.measures.slice(l,h+1))));RS.on=false;toast(`${h-l+1} ${h>l?'Takte':'Takt'} kopiert – Ziel-Takt wählen und „Einfügen“`);updRangeUI();};
 $('#bCut').onclick=()=>{const l=rLo(),h=rHi();if(song.measures.length-(h-l+1)<1)return;LS.set('dn.clip',JSON.parse(JSON.stringify(song.measures.slice(l,h+1))));rangeOps((a,b)=>{song.measures.splice(a,b-a+1);sel=Math.min(a,song.measures.length-1);});toast('Ausgeschnitten');};
 $('#bPaste').onclick=()=>{const c=getClip();if(!c)return;const at=rHi()+1;rangeOps(()=>{const ins=JSON.parse(JSON.stringify(c));song.measures.splice(at,0,...ins);sel=at;});toast(`${c.length} ${c.length>1?'Takte':'Takt'} nach Takt ${at} eingefügt`);};
@@ -705,6 +725,14 @@ function updRangeUI(){const n=rHi()-rLo()+1;$('#bRange').classList.toggle('on',R
  document.querySelectorAll('.mbg').forEach(r=>r.classList.toggle('sel',isSelM(+r.dataset.mi)));}
 function selectMeasure(i,fromPlay){if(!fromPlay&&RS.on&&!RS.picking){RS.on=false;setTimeout(updRangeUI);}sel=Math.max(0,Math.min(song.measures.length-1,i));
  document.querySelectorAll('.mbg').forEach(r=>r.classList.toggle('sel',isSelM(+r.dataset.mi)));renderEditor();if(!fromPlay)persist();}
+function ovOpen(id){$('#'+id).classList.add('open');}
+function ovClose(){document.querySelectorAll('.ovl.open').forEach(o=>o.classList.remove('open'));}
+const ovIsOpen=()=>!!document.querySelector('.ovl.open');
+document.querySelectorAll('.ovl').forEach(o=>o.addEventListener('click',e=>{if(e.target===o||e.target.closest('[data-ovclose]'))ovClose();}));
+$('#bTakt').onclick=()=>{$('#ovNr').textContent=sel+1;ovOpen('ovTakt');};
+$('#bSet').onclick=()=>ovOpen('ovSet');
+$('#bAddQ').onclick=()=>$('#bAdd').click();
+$('#bFold').onclick=()=>{const f=$('#edPanel').classList.toggle('folded');$('#bFold').textContent=f?'▴':'▾';};
 $('#bPrev').onclick=()=>selectMeasure(sel-1);
 $('#bNext').onclick=()=>selectMeasure(sel+1);
 $('#bUndo').onclick=doUndo;
@@ -897,7 +925,7 @@ function draw(){if(!P.on)return;let cur=null;while(P.q.length&&P.q[0].t<=ac.curr
  }
  P.raf=requestAnimationFrame(draw);}
 let curCol=-1;
-function setCol(i){if(i===curCol)return;document.querySelectorAll('#grid .cur').forEach(e=>e.classList.remove('cur'));curCol=i;if(i>=0)document.querySelectorAll(`#grid [data-c="${i}"]`).forEach(e=>e.classList.add('cur'));}
+function setCol(i){if(i===curCol)return;document.querySelectorAll('#ned .cur').forEach(e=>e.classList.remove('cur'));curCol=i;if(i>=0)document.querySelectorAll(`#ned [data-c="${i}"]`).forEach(e=>e.classList.add('cur'));}
 $('#play').onclick=()=>P.on?stop():start();
 $('#bFromHere').onclick=()=>{if(P.on)stop();start(sel);};
 $('#score').addEventListener('dblclick',e=>{const r=e.target.closest('.mbg');if(!r)return;if(P.on)stop();start(+r.dataset.mi);});
@@ -928,6 +956,43 @@ function recordHit(id,sv,t){const te=t-((ac.outputLatency||0)+(ac.baseLatency||0
 $('#bMidi').onclick=midiConnect;
 $('#cRec').onchange=e=>{MIDI.arm=e.target.checked;};
 $('#cMon').onchange=e=>{MIDI.monitor=e.target.checked;};
+
+/* ---------- Tastatur ---------- */
+const KEYMAP={h:'HH',o:'HH',p:'HF',s:'SN',k:'BD',b:'BD',r:'RD',c:'CR','1':'T1','2':'T2','3':'FT'};
+function keyMeasure(d){const L=song.measures.length;const j=sel+d;if(j<0||j>=L)return false;selectMeasure(j);return true;}
+function moveCursor(d,byBeat){const m=song.measures[sel];const inf=getInfo(m);let i=CUR.i;
+ if(byBeat){if(d>0){const nb=inf[i].be;if(nb<inf.length){setCursor(nb);return;}if(keyMeasure(1))setCursor(0);return;}
+  const bs=inf[i].bs;if(i>bs){setCursor(bs);return;}if(i>0){setCursor(inf[i-1].bs);return;}if(keyMeasure(-1)){const f=getInfo(song.measures[sel]);setCursor(f[f.length-1].bs);}return;}
+ i+=d;if(i>=inf.length){if(keyMeasure(1))setCursor(0);return;}if(i<0){if(keyMeasure(-1))setCursor(getInfo(song.measures[sel]).length-1);return;}setCursor(i);}
+function keyEdit(fn){const m=song.measures[sel];if(repOff(m)){toast('Faulenzer-Takt – erst ausschreiben');return;}pushUndo();if(fn(m)===false){undoStack.pop();return;}renderNotation();renderNoteEditor();persist();}
+function keyTool(id,t){keyEdit(m=>{const pv=tool;tool=t;const ok=applyTool(m,id,CUR.i);tool=pv;if(ok){const sv=m.notes[id][CUR.i];if(sv&&!P.on)preview(id,sv,m.orn[id][CUR.i]);}return ok;});}
+function onKey(e){if(e.target.matches('input,textarea,select'))return;if(e.key==='Escape'){ovClose();closeModal();return;}
+ if($('#modal').classList.contains('open')||ovIsOpen())return;
+ if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'){e.preventDefault();doUndo();return;}
+ if(e.ctrlKey||e.metaKey||e.altKey)return;
+ if(e.code==='Space'){e.preventDefault();P.on?stop():start();return;}
+ const k=e.key,lk=k.toLowerCase();
+ if(k==='ArrowRight'||k==='ArrowLeft'){e.preventDefault();moveCursor(k==='ArrowRight'?1:-1,e.shiftKey);return;}
+ if(k==='ArrowUp'||k==='ArrowDown'){e.preventDefault();if(keyMeasure(k==='ArrowDown'?1:-1))setCursor(0);return;}
+ if(k==='Enter'){e.preventDefault();moveCursor(1,false);return;}
+ if(k==='Backspace'||k==='Delete'){e.preventDefault();keyEdit(m=>{let any=false;INST.forEach(x=>{if(m.notes[x.id][CUR.i]){m.notes[x.id][CUR.i]=0;m.orn[x.id][CUR.i]=0;if(m.fx[x.id])m.fx[x.id][CUR.i]=0;any=true;}});return any;});return;}
+ if(KEYMAP[lk]){e.preventDefault();keyTool(KEYMAP[lk],lk==='o'?'open':e.shiftKey?'acc':'hit');return;}
+ const ornTarget=()=>{const m=song.measures[sel];const h=INST.find(x=>(x.orn||x.grace)&&m.notes[x.id][CUR.i]);return h?h.id:'SN';};
+ if(lk==='g'){e.preventDefault();keyTool('SN','gh');return;}
+ if(lk==='f'||lk==='d'){e.preventDefault();keyTool(ornTarget(),lk==='f'?'flam':'drag');return;}
+ if(lk==='z'){e.preventDefault();const m=song.measures[sel];const h=INST.find(x=>x.orn&&m.notes[x.id][CUR.i]);keyTool(h?h.id:'SN','buzz');return;}
+ if(lk==='l'||lk==='t'){e.preventDefault();const bit=lk==='l'?1:2;keyEdit(m=>{let any=false;INST.forEach(x=>{if(m.notes[x.id][CUR.i]){if(!m.fx[x.id])m.fx[x.id]=new Array(m.notes[x.id].length).fill(0);m.fx[x.id][CUR.i]^=bit;any=true;}});if(!any)toast('An dieser Stelle steht keine Note');return any;});return;}
+ if(lk==='a'){e.preventDefault();keyEdit(m=>{let any=false;INST.forEach(x=>{const sv=m.notes[x.id][CUR.i];if(!sv)return;const ai=x.st.indexOf('>');if(ai<0)return;m.notes[x.id][CUR.i]=sv===ai?1:ai;any=true;});return any;});return;}
+ if(lk==='x'){e.preventDefault();keyEdit(m=>{m.stick[CUR.i]=(m.stick[CUR.i]+1)%3;});return;}}
+function keysHelp(){const r=(k,t)=>`<tr><td>${k}</td><td>${t}</td></tr>`,K=t=>t.split(' ').map(x=>`<kbd>${x}</kbd>`).join(' ');
+ openModal(`<div class="row"><h2 style="flex:1;margin:0">Tastatur</h2><button class="btn" data-a="close">Schließen</button></div>
+ <p class="muted">Der blaue Cursor zeigt die Position. Ein Klick in die Noten oder in eine Spur setzt ihn ebenfalls.</p><table class="keys">
+ ${r(K('← →'),'Cursor eine Position weiter/zurück (auch über Taktgrenzen)')}${r(K('⇧')+' + '+K('← →'),'Zum nächsten/vorigen Schlag')}${r(K('↑ ↓'),'Vorheriger/nächster Takt')}${r(K('Enter'),'Eine Position weiter')}
+ ${r(K('H'),'Hi-Hat')}${r(K('O'),'Hi-Hat offen')}${r(K('P'),'Hi-Hat mit dem Fuß')}${r(K('S'),'Snare')}${r(K('K')+' / '+K('B'),'Bassdrum (Kick)')}${r(K('1 2 3'),'Tom 1, Tom 2, Standtom')}${r(K('R'),'Ride')}${r(K('C'),'Crash')}
+ ${r(K('⇧')+' + Buchstabe','Mit Akzent setzen')}${r(K('A'),'Akzent an der Position umschalten')}${r(K('G'),'Ghost-Note (Snare)')}${r(K('F D'),'Flam, Drag')}${r(K('Z'),'Buzz-Wirbel')}${r(K('L'),'Lange Note umschalten')}${r(K('T'),'Haltebogen umschalten')}${r(K('X'),'Sticking R / L / leer')}
+ ${r(K('Entf'),'Alles an der Position löschen')}${r(K('Leertaste'),'Abspielen / Stopp')}${r(K('Strg Z'),'Rückgängig')}${r(K('Esc'),'Fenster schließen')}</table>
+ <p class="muted">Ein zweiter Druck auf dieselbe Taste nimmt den Schlag wieder weg.</p>`);}
+$('#bKeys').onclick=keysHelp;
 
 /* ---------- Tempo & Schalter ---------- */
 function setBpm(v){song.bpm=Math.max(30,Math.min(300,Math.round(+v||90)));$('#bpm').value=song.bpm;persist();}
@@ -1362,7 +1427,7 @@ async function saveFile(blob,fn){if(downloads){await downloads.save({filename:fn
  else{song=normalize(PRESETS['Snare-Etüde: Rudiments & Tuplets']());song.pristine=true;sel=0;lastSig='';}
  bindOpt();renderAll();persist();saveLib();initServer();
  let rw=0;addEventListener('resize',()=>{clearTimeout(rw);rw=setTimeout(()=>{renderNotation();renderEditor();},150);});
- document.addEventListener('keydown',e=>{if(e.target.matches('input,textarea,select'))return;if(e.code==='Space'){e.preventDefault();P.on?stop():start();}if((e.ctrlKey||e.metaKey)&&e.key==='z'){e.preventDefault();doUndo();}});
+ document.addEventListener('keydown',onKey);
 })();
 </script>
 </body>
