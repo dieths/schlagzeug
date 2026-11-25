@@ -227,7 +227,7 @@ Im Noteneditor eines Faulenzer-Takts:
 2. Takt C: **1. Klammer** und **:| Ende (2×)**
 3. Takt D: **2. Klammer**
 
-Gespielt wird A B C A B D. Ohne 𝄆 Anfang springt die Wiederholung zum Stückanfang bzw. hinter das vorige Wiederholungsende.
+Gespielt wird A B C A B D. Ohne |: Anfang springt die Wiederholung zum Stückanfang bzw. hinter das vorige Wiederholungsende.
 
 ### 3.5 Tempowechsel im Stück
 
