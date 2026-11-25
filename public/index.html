@@ -155,12 +155,12 @@ label.fld{display:block;margin-top:10px}label.fld span{display:block;font-size:1
     <span class="muted" id="rangeInfo"></span>
   </div>
   <div class="row">
-    <select id="sRep" aria-label="Faulenzer"><option value="0">Faulenzer: aus</option><option value="1">𝄎 1 Takt wiederholen</option><option value="2">𝄎 2 Takte wiederholen</option></select>
+    <select id="sRep" aria-label="Faulenzer"><option value="0">Faulenzer: aus</option><option value="1">% 1 Takt wiederholen</option><option value="2">% 2 Takte wiederholen</option></select>
     <button class="btn" id="bBox" title="Taktnummer mit Rahmen hervorheben">▢ Nr. markieren</button>
   </div>
   <div class="row">
-    <button class="btn" id="bRS" title="Wiederholung beginnt hier">𝄆 Anfang</button>
-    <select id="sRE" aria-label="Wiederholung endet hier"><option value="0">𝄇 Ende: aus</option><option value="2">𝄇 Ende (2×)</option><option value="3">𝄇 Ende (3×)</option><option value="4">𝄇 Ende (4×)</option></select>
+    <button class="btn" id="bRS" title="Wiederholung beginnt hier">|: Anfang</button>
+    <select id="sRE" aria-label="Wiederholung endet hier"><option value="0">:| Ende: aus</option><option value="2">:| Ende (2×)</option><option value="3">:| Ende (3×)</option><option value="4">:| Ende (4×)</option></select>
     <select id="sVo" aria-label="Klammer"><option value="0">Klammer: –</option><option value="1">1. Klammer</option><option value="2">2. Klammer</option><option value="3">3. Klammer</option></select>
   </div>
   <div class="row">
@@ -264,7 +264,7 @@ const SUBS_SHORT={4:{1:'♩',2:'8tel',3:'Tri',4:'16tel',5:'Quint',6:'Sext',8:'32
 const ORNMARK=['','f','d','z'];
 const PARTK={2:[1,2,3,4,6],3:[1,2,4]};
 function partName(m,P,k){const pl=bu(m)/P,w=p2(pl*4/k);const n={4:'Viertel',2:'8tel',1:'16tel',0.5:'32tel',0.25:'64tel'}[w]||'';return n+(k===3?'-Tri':k===6?'-Sext':'');}
-const TOOLS=[['hit','● Schlag'],['acc','> Akzent'],['gh','( ) Ghost'],['flam','Flam'],['drag','Drag'],['buzz','z Buzz-Wirbel'],['open','o Hi-Hat offen'],['long','𝅗𝅥 Lang'],['tie','‿ Haltebogen'],['erase','⌫ Löschen']];
+const TOOLS=[['hit','● Schlag'],['acc','> Akzent'],['gh','( ) Ghost'],['flam','Flam'],['drag','Drag'],['buzz','z Buzz-Wirbel'],['open','o Hi-Hat offen'],['long','◯ Lang'],['tie','‿ Haltebogen'],['erase','⌫ Löschen']];
 
 /* ---------- Modell ---------- */
 const dk=den=>den===8?8:4;
@@ -292,9 +292,9 @@ function idxAt(m,t){if(t>qlen(m)-1e-9)return -1;const inf=getInfo(m);let best=-1
 const fxOf=(m,id,i)=>m.fx&&m.fx[id]?m.fx[id][i]|0:0;
 /* Haltebogen: Ziel ist der nächste Schlag desselben Instruments (auch im nächsten Takt) */
 function prevHit(ms,mi,i,id){let m=srcOf(ms,mi)||ms[mi];for(let k=i-1;k>=0;k--)if(m.notes[id][k])return {mi,i:k,m};
- for(let j=mi-1;j>=0&&j>=mi-4;j--){m=srcOf(ms,j)||ms[j];for(let k=m.notes[id].length-1;k>=0;k--)if(m.notes[id][k])return {mi:j,i:k,m};}return null;}
+ if(repOff(ms[mi]))return null;for(let j=mi-1;j>=0&&j>=mi-1;j--){m=srcOf(ms,j)||ms[j];for(let k=m.notes[id].length-1;k>=0;k--)if(m.notes[id][k])return {mi:j,i:k,m};}return null;}
 function nextHit(ms,mi,i,id){let m=srcOf(ms,mi)||ms[mi];for(let k=i+1;k<m.notes[id].length;k++)if(m.notes[id][k])return {mi,i:k,m};
- for(let j=mi+1;j<ms.length&&j<=mi+4;j++){m=srcOf(ms,j)||ms[j];for(let k=0;k<m.notes[id].length;k++)if(m.notes[id][k])return {mi:j,i:k,m};}return null;}
+ for(let j=mi+1;j<ms.length&&j<=mi+1;j++){if(repOff(ms[j]))return null;m=srcOf(ms,j)||ms[j];for(let k=0;k<m.notes[id].length;k++)if(m.notes[id][k])return {mi:j,i:k,m};}return null;}
 function tiedInto(ms,mi,i,id){const p=prevHit(ms,mi,i,id);return !!(p&&(fxOf(p.m,id,p.i)&2));}
 const repOff=m=>!m?0:m.rep===1?1:(m.rep===2||m.rep===-2)?2:0;
 function srcIndex(ms,i){let g=0;while(i>=0&&ms[i]&&repOff(ms[i])&&g++<200)i-=repOff(ms[i]);return i>=0&&ms[i]&&!repOff(ms[i])?i:-1;}
@@ -555,9 +555,10 @@ function notationRows(W,mode,ms,o){ms=ms||song.measures;o=o||{};const print=mode
   });
   if(!o.noTies)row.forEach(it=>{const m=it.m;if(it.mmr||repOff(m))return;const L=layout[it.mi];if(!L)return;
    INST.forEach(x=>{m.notes[x.id].forEach((sv,i)=>{if(!sv||!(fxOf(m,x.id,i)&2))return;const nh=nextHit(ms,it.mi,i,x.id);
-    const x1=L.xs[i]+6;let x2=RW-6;if(nh){const L2=layout[nh.mi];if(L2&&L2.ri===ri)x2=L2.xs[nh.i]-6;else if(edit&&nh.mi!==it.mi)x2=RW-6;}
-    const y=yP(x.pos),dn=x.v===1;const yy=dn?y+6:y-6,cy=dn?y+15:y-15;
-    body+=`<path d="M${x1} ${yy}Q${(x1+x2)/2} ${cy} ${x2} ${yy}Q${(x1+x2)/2} ${cy+(dn?-2.2:2.2)} ${x1} ${yy}" fill="currentColor" stroke="currentColor" stroke-width=".6"/>`;});});});
+    const x1=L.xs[i]+5;let x2=x1+22;if(nh){const L2=layout[nh.mi];if(L2&&L2.ri===ri)x2=L2.xs[nh.i]-5;else x2=Math.min(RW-4,x1+60);}
+    if(x2<x1+8)x2=x1+8;const len=x2-x1,hgt=Math.max(4,Math.min(9,len*0.12));
+    const y=yP(x.pos),dn=x.v===1;const yy=dn?y+5:y-5,cy=dn?yy+hgt:yy-hgt,cy2=dn?cy-2.6:cy+2.6,mx=(x1+x2)/2;
+    body+=`<path d="M${x1} ${yy}Q${mx} ${cy} ${x2} ${yy}Q${mx} ${cy2} ${x1} ${yy}Z" fill="currentColor"/>`;});});});
   if(edit){svgs.push({w:RW,body});return;}
   if(print){svgs.push({w:RW,h:RH+T,svg:`<svg xmlns="http://www.w3.org/2000/svg" width="${RW}" height="${RH+T}" viewBox="0 0 ${RW} ${RH+T}" color="#000" font-family="Helvetica,Arial,sans-serif"><g transform="translate(0,${T})">${body}</g></svg>`});return;}
   svgs.push(`<svg width="${RW}" height="${H+T}" viewBox="0 0 ${RW} ${H+T}"><g transform="translate(0,${T})">`+bg+`<rect class="ph" id="ph${ri}" x="0" y="${yP(10)-6}" width="0" height="${yP(-2)-yP(10)+12}" rx="3" style="display:none"/><g pointer-events="none">${body}</g></g></svg>`);
@@ -613,7 +614,7 @@ function beatSelHtml(m,K,b,style,cls,p){const k=m.subs[b];
 function renderNoteEditor(){
  const m=song.measures[sel];const box=$('#ned');
  if(repOff(m)){const pair=m.rep===2?[sel,sel+1]:m.rep===-2?[sel-1,sel]:[sel];const srcs=pair.map(i=>srcIndex(song.measures,i)+1);
-  box.innerHTML=`<div class="repinfo"><div class="big">𝄎${pair.length===2?'²':''}</div><p>${pair.length===2?`Takte ${pair[0]+1}–${pair[1]+1} wiederholen die Takte ${srcs[0]}–${srcs[1]}`:`Takt ${sel+1} wiederholt Takt ${srcs[0]}`} (Faulenzer).</p><div class="row" style="justify-content:center"><button class="btn" id="bRepOut">Ausschreiben</button><button class="btn" id="bRepOff">Faulenzer entfernen</button></div></div>`;
+  box.innerHTML=`<div class="repinfo"><div class="big">%${pair.length===2?'²':''}</div><p>${pair.length===2?`Takte ${pair[0]+1}–${pair[1]+1} wiederholen die Takte ${srcs[0]}–${srcs[1]}`:`Takt ${sel+1} wiederholt Takt ${srcs[0]}`} (Faulenzer).</p><div class="row" style="justify-content:center"><button class="btn" id="bRepOut">Ausschreiben</button><button class="btn" id="bRepOff">Faulenzer entfernen</button></div></div>`;
   $('#bRepOut').onclick=()=>repWriteOut(pair);$('#bRepOff').onclick=()=>setRep(0);NE.L=null;return;}const avail=Math.max(260,box.clientWidth-2);
  const r=notationRows(avail/1.35,'edit',[m]);const row=r.svgs[0];const L=r.layout[0];
  const Z=Math.max(1.35,avail/row.w);NE.Z=Z;NE.L=L;NE.rw=row.w;
