@@ -100,7 +100,7 @@ Erst ein Werkzeug wählen, dann in die Spur des Instruments tippen. Ein zweiter 
 | **( ) Ghost** | Ghost-Note (leise, in Klammern) | Snare, Toms |
 | **Flam** | Vorschlag mit einer Note | Snare, Toms, Hi-Hat, Ride, Crash |
 | **Drag** | Vorschlag mit zwei Noten | Snare, Toms, Hi-Hat, Ride, Crash |
-| **z Buzz-Wirbel** | Presswirbel (z am Notenhals) | Snare, Toms |
+| **z Wirbel** | Snare und Toms: Presswirbel (z am Notenhals). Becken (Crash, Ride, Hi-Hat): Beckenwirbel (drei Striche am Hals bzw. über der ganzen Note) | Snare, Toms, Hi-Hat, Ride, Crash |
 | **o Hi-Hat offen** | offene Hi-Hat (o über der Note) | Hi-Hat |
 | **𝅗𝅥 Lang** | Note klingt bis zum nächsten Schlag dieser Stimme: halbe, punktierte halbe oder ganze Note statt Note + Pausen | alle |
 | **‿ Haltebogen** | Bindet die Note an den nächsten Schlag desselben Instruments, auch über den Taktstrich; die gebundene Note wird nicht neu angeschlagen | alle |
@@ -110,7 +110,8 @@ Erst ein Werkzeug wählen, dann in die Spur des Instruments tippen. Ein zweiter 
 
 - **Crash ausklingen lassen:** Crash auf die Eins setzen, Werkzeug **Lang** antippen und auf die Note tippen. Steht im Takt sonst nichts in der oberen Stimme, wird daraus eine ganze Note.
 - **Halbe Noten:** Schläge auf 1 und 3 setzen, beide mit **Lang** markieren.
-- **Wirbel über mehrere Takte:** Buzz-Wirbel auf die Eins, mit **Lang** zur ganzen Note machen, mit **Haltebogen** an den Schlag im nächsten Takt binden. Der Wirbel klingt durch, der gebundene Schlag wird nicht neu angeschlagen.
+- **Wirbel über mehrere Takte:** Wirbel auf die Eins, mit **Lang** zur ganzen Note machen, mit **Haltebogen** an den Schlag im nächsten Takt binden. Der Wirbel klingt durch, der gebundene Schlag wird nicht neu angeschlagen.
+- **Beckenwirbel über eine halbe oder ganze Note:** Crash (oder Ride) auf den Schlag setzen, Werkzeug **z Wirbel**, dann **Lang**. Steht danach nichts mehr in der oberen Stimme, wird es eine ganze Note mit Wirbelstrichen; mit einem weiteren Schlag auf der 3 eine halbe. Zusammen mit einer Crescendo-Gabel ergibt das den typischen anschwellenden Beckenwirbel (siehe 2.8).
 
 Lange Noten gehen immer bis zum nächsten Schlag derselben Stimme (Hände bzw. Füße), höchstens bis zum Taktende.
 
@@ -120,7 +121,8 @@ Unter dem Raster liegt für jedes Instrument eine eigene, große Zeile – genau
 
 - Angezeigt werden Hi-Hat, Snare, Bassdrum und alle Instrumente, die im Takt (oder direkt davor/danach) vorkommen.
 - **＋ Alle Instrumente** blendet die übrigen Spuren (Crash, Ride, Toms, HH-Fuß) ein.
-- Die unterste Zeile **Sticking** wechselt pro Tipp zwischen R, L und leer.
+- Die Zeile **Sticking** wechselt pro Tipp zwischen R, L und leer.
+- Die unterste Zeile **Dynamik** öffnet die Auswahl für Lautstärke und Gabeln (siehe 2.8).
 - **♪ Noten hier zeigen** blendet zusätzlich den vergrößerten Takt über den Spuren ein (auf großen Bildschirmen standardmäßig an, am Handy aus, weil der Takt oben schon zu sehen ist).
 
 ### 2.6 Schreiben mit der Tastatur (Rechner)
@@ -141,7 +143,9 @@ Am Rechner geht es am schnellsten mit der Tastatur. Ein blauer **Cursor** markie
 | ⇧ + Buchstabe | mit Akzent setzen |
 | A | Akzent an der Position umschalten |
 | G | Ghost-Note (Snare) |
-| F / D / Z | Flam / Drag / Buzz-Wirbel |
+| F / D / Z | Flam / Drag / Wirbel (Snare, Toms, Becken) |
+| V | Dynamik-Auswahl an der Position öffnen |
+| < / > | Crescendo / Decrescendo an der Position setzen bzw. entfernen |
 | L / T | Lange Note / Haltebogen umschalten |
 | X | Sticking R / L / leer |
 | Entf | Alles an der Position löschen |
@@ -165,6 +169,32 @@ Die Übersicht gibt es jederzeit über **⌨** in der Bearbeitung.
   - Optional Hi-Hat, Ride und Crash einbeziehen (sonst nur Snare und Toms).
 
 Wo beide Hände gleichzeitig spielen, bleibt das Feld leer. Einzelne Felder lassen sich danach von Hand korrigieren.
+
+### 2.8 Dynamik: Lautstärke, Crescendo, Decrescendo
+
+In der Spur **Dynamik** an die gewünschte Zählzeit tippen (oder Taste V). Zur Auswahl stehen:
+
+| Zeichen | Bedeutung |
+|---|---|
+| **pp, p, mp, mf, f, ff** | sehr leise bis sehr laut; gilt ab dieser Stelle bis zum nächsten Zeichen |
+| **sfz** | einzelner, stark betonter Schlag; danach geht es in der vorherigen Lautstärke weiter |
+| **fp** | Schlag laut (forte), sofort danach leise (piano) |
+| **< cresc.** | Crescendo-Gabel: wird lauter |
+| **> decresc.** | Decrescendo-Gabel: wird leiser |
+| **\| Ende** | beendet eine Gabel, ohne eine neue Lautstärke zu setzen |
+
+**So laufen Gabeln:** Eine Gabel beginnt an ihrer Zählzeit und läuft bis zum **nächsten Dynamik-Zeichen** – auch über mehrere Takte und Zeilen hinweg.
+
+- Folgt eine Lautstärke (z. B. `p` … `<` … `ff`), wird genau bis dorthin lauter bzw. leiser.
+- Folgt keine Lautstärke (sondern „| Ende“, eine weitere Gabel oder gar nichts), ändert sich die Lautstärke um zwei Stufen (z. B. mf → ff).
+- Ohne nachfolgendes Zeichen endet die Gabel am Ende ihres Takts.
+
+**Beispiel – anschwellender Beckenwirbel über zwei Takte:**
+1. Takt 1: Crash auf die Eins, dann **z Wirbel**, **Lang** und **Haltebogen**. Dynamik `pp` auf die 1, `<` auf die 2.
+2. Takt 2: Crash auf die Eins, ebenfalls **z Wirbel** und **Lang** (damit der Wirbel nach dem Bogen weiterklingt).
+3. Takt 3: Dynamik `ff` auf die 1 – dort endet die Gabel. Ohne dritten Takt stattdessen `| Ende` auf die 4 von Takt 2.
+
+Die Dynamik wirkt beim Abspielen (leisere/lautere Aufnahmen, auch innerhalb eines Wirbels), im PDF unter den Noten, im MIDI-Export als Anschlagstärke und im MusicXML-Export. Auch auf Faulenzer-Takten lässt sich Dynamik setzen. Ohne Dynamik-Zeichen klingt alles wie bisher (mf).
 
 ---
 
@@ -392,11 +422,11 @@ Gespeichert werden Musik / Urheber, Arrangement, Copyright-Zeile sowie alle Layo
 
 ### 7.2 MIDI (.mid)
 
-Drumspur auf Kanal 10 (General MIDI) mit Tempo, Taktwechseln, ausgeschriebenen Wiederholungen und Faulenzern, Swing, Flams, Drags und Buzz-Wirbeln. Für DAWs (GarageBand, Cubase, Logic …) oder zum Abspielen über ein E-Drum-Modul.
+Drumspur auf Kanal 10 (General MIDI) mit Tempo, Taktwechseln, ausgeschriebenen Wiederholungen und Faulenzern, Swing, Flams, Drags, Wirbeln und Dynamik (als Anschlagstärke). Für DAWs (GarageBand, Cubase, Logic …) oder zum Abspielen über ein E-Drum-Modul.
 
 ### 7.3 MusicXML
 
-Notenbild zum Weiterbearbeiten in MuseScore, Sibelius, Dorico u. a. Enthalten sind Taktarten, Tuplets (3, 5, 6, 7), Akzente, Ghost-Notes, Vorschläge, Buzz-Wirbel, offene Hi-Hat, Sticking (als Text unter den Noten), Wiederholungen mit Klammern, markierte Taktnummern und Beschriftungen. Faulenzer werden ausgeschrieben.
+Notenbild zum Weiterbearbeiten in MuseScore, Sibelius, Dorico u. a. Enthalten sind Taktarten, Tuplets (3, 5, 6, 7), Akzente, Ghost-Notes, Vorschläge, Wirbel (Snare als z, Becken mit drei Strichen), Dynamik und Gabeln, offene Hi-Hat, Sticking (als Text unter den Noten), Wiederholungen mit Klammern, markierte Taktnummern und Beschriftungen. Faulenzer werden ausgeschrieben.
 
 > In der Vorschau-Version innerhalb von Claude kommen MIDI und MusicXML als ZIP-Datei.
 
