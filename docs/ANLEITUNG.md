@@ -41,7 +41,7 @@ Die obere Zeile der Bearbeitung:
 | **⚙ Takt** | Takt-Optionen: Taktart, Raster, Takte einfügen/löschen/verschieben, Bereich kopieren, Faulenzer, Wiederholungen, Tempo, Beschriftung |
 | **＋** | Leeren Takt dahinter einfügen |
 | **⌨** | Tastatur-Kürzel (nur am Rechner) |
-| **↶** | Rückgängig |
+| **↶ / ↷** | Rückgängig / Wiederherstellen |
 | **▾ / ▴** | Bearbeitung ein-/ausklappen |
 
 Alles wird automatisch gespeichert. Es gibt keinen Speichern-Knopf.
@@ -53,7 +53,8 @@ Alles wird automatisch gespeichert. Es gibt keinen Speichern-Knopf.
 ### 2.1 Takt auswählen
 
 - In der Notenansicht auf den Takt tippen, oder
-- mit **◀** und **▶** blättern (am Rechner auch **↑ ↓**).
+- mit **◀** und **▶** blättern (am Rechner auch **↑ ↓**), oder
+- am Handy/Tablet in den Spuren **nach links oder rechts wischen** (siehe 2.5).
 
 Der gewählte Takt ist farbig hinterlegt; darunter erscheinen seine Instrument-Spuren.
 
@@ -89,13 +90,24 @@ Das Raster bestimmt, auf welche Positionen Noten gesetzt werden können.
 
 Die Notation zeigt die Tuplet-Zahl (3, 5, 6) automatisch über der betreffenden Gruppe.
 
-### 2.4 Werkzeuge
+### 2.4 Tippen, Gedrückthalten und Werkzeuge
 
-Erst ein Werkzeug wählen, dann in die Spur des Instruments tippen. Ein zweiter Tipp an dieselbe Stelle nimmt die Eingabe wieder weg.
+**Der schnelle Weg – ohne Werkzeugwechsel:** Mit dem Standardwerkzeug **● Tippen** schaltet jeder Tipp auf ein Feld weiter:
+
+| Instrument | 1. Tipp | 2. Tipp | 3. Tipp | 4. Tipp |
+|---|---|---|---|---|
+| Snare, Toms | ● Schlag | > Akzent | ( ) Ghost | leer |
+| Hi-Hat | × Schlag | > Akzent | o offen | leer |
+| Ride, Crash, Bassdrum | Schlag | > Akzent | leer | |
+| HH-Fuß | Schlag | leer | | |
+
+**Gedrückt halten** (am Rechner: Rechtsklick) öffnet ein Menü mit allen Möglichkeiten für dieses Feld: Anschlag, Verzierung (Flam, Drag, Wirbel), Dauer (Lang, Haltebogen), Sticking R/L, Dynamik und Löschen. Mehrere Änderungen hintereinander sind möglich, **Fertig** schließt das Menü.
+
+**Werkzeuge zum „Malen“:** Die übrigen Werkzeuge sind praktisch, wenn dieselbe Sache auf viele Noten soll (z. B. lauter Flams). Werkzeug wählen, dann nacheinander auf die Felder tippen. Ein zweiter Tipp an dieselbe Stelle nimmt die Eingabe wieder weg. Danach wieder **● Tippen** wählen.
 
 | Werkzeug | Wirkung | Instrumente |
 |---|---|---|
-| ● **Schlag** | normaler Schlag setzen/entfernen | alle |
+| ● **Tippen** | Schlag → Akzent → Ghost/offen → leer (siehe oben) | alle |
 | **> Akzent** | Akzent | alle außer HH-Fuß |
 | **( ) Ghost** | Ghost-Note (leise, in Klammern) | Snare, Toms |
 | **Flam** | Vorschlag mit einer Note | Snare, Toms, Hi-Hat, Ride, Crash |
@@ -124,6 +136,12 @@ Unter dem Raster liegt für jedes Instrument eine eigene, große Zeile – genau
 - Die Zeile **Sticking** wechselt pro Tipp zwischen R, L und leer.
 - Die unterste Zeile **Dynamik** öffnet die Auswahl für Lautstärke und Gabeln (siehe 2.8).
 - **♪ Noten hier zeigen** blendet zusätzlich den vergrößerten Takt über den Spuren ein (auf großen Bildschirmen standardmäßig an, am Handy aus, weil der Takt oben schon zu sehen ist).
+- **✓ Sticking** und **✓ Dynamik** blenden diese beiden Zeilen ein oder aus, wenn du sie gerade nicht brauchst. Im Notenbild bleibt alles sichtbar.
+- **⧉ Takt wie vorher** übernimmt den kompletten Inhalt des vorherigen Takts (Noten, Raster, Sticking) in den aktuellen. Typischer Ablauf: **＋** (neuer Takt) → **⧉ Takt wie vorher** → abwandeln. Beschriftung, Markierung, Tempo und Dynamik des aktuellen Takts bleiben erhalten.
+
+**Lupe für feine Raster:** Wären die Felder zu schmal zum sicheren Treffen (z. B. 16tel oder 32tel am Handy), zeigt die Bearbeitung den Takt automatisch in Teilen, etwa Schlag 1–2 und Schlag 3–4. Links oben steht, welcher Teil gerade zu sehen ist (z. B. **‹ 1/2 ›**); die Pfeile blättern. Auf Tablet und Rechner ist meist genug Platz, dann bleibt der Takt am Stück. **✓ 🔍 Lupe** schaltet das Verhalten ab bzw. wieder an.
+
+**Wischen:** In den Spuren nach links wischen zeigt den nächsten Teil bzw. den nächsten Takt, nach rechts den vorherigen. So lässt sich ein ganzes Stück durchgehen, ohne die Knöpfe zu suchen.
 
 ### 2.6 Schreiben mit der Tastatur (Rechner)
 
@@ -151,6 +169,7 @@ Am Rechner geht es am schnellsten mit der Tastatur. Ein blauer **Cursor** markie
 | Entf | Alles an der Position löschen |
 | Leertaste | Abspielen / Stopp |
 | Strg/⌘ + Z | Rückgängig |
+| Strg/⌘ + Y oder ⇧ + Strg/⌘ + Z | Wiederherstellen |
 
 Ein zweiter Druck auf dieselbe Taste nimmt den Schlag wieder weg. Mehrere Instrumente an einer Position (z. B. Hi-Hat + Bassdrum): einfach nacheinander H und K drücken, dann → weiter.
 
@@ -530,6 +549,10 @@ docker run --rm -v schlagzeug_drum-notes-data:/data -v "$PWD":/backup alpine \
 | Groove 7× wiederholen | Nächster Takt → ⚙ Takt → Faulenzer 1 Takt → Kopieren → mehrmals Einfügen |
 | Medley-Teil markieren | Takt wählen → ⚙ Takt → ▢ Nr. markieren → Beschriftung „Song 2“ |
 | Schneller werden zum Refrain | Refrain-Takt wählen → ⚙ Takt → Tempo ab hier 140 → allmählich über 2 Takte |
+| Groove variieren | ＋ (neuer Takt) → ⧉ Takt wie vorher → einzelne Felder antippen |
+| Akzent oder Ghost setzen | Feld mehrfach antippen (Schlag → Akzent → Ghost → leer) |
+| Flam, Wirbel, lange Note an einer Stelle | Feld gedrückt halten → Menü |
+| Crescendo-Beckenwirbel | Crash gedrückt halten → z Wirbel + Lang; Dynamik-Spur: pp, dann < (siehe 2.8) |
 | Kompaktes Notenblatt | ⇩ Export → Notengröße 60 %, 4 Takte pro Zeile, Mehrtaktpausen an → PDF erstellen |
 
 ---

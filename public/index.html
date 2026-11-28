@@ -140,7 +140,15 @@ header{flex:none}
 .cell.lc{position:absolute;top:3px;height:32px}
 .cell.lc.kcur{box-shadow:inset 0 0 0 2px var(--acc2)}
 .cell.lc.stk{height:28px}
-.lmore{height:auto;padding:6px 0 0 6px}
+.lmore{height:auto;padding:6px 0 0 6px;display:flex;flex-wrap:wrap;gap:6px}
+.chip{opacity:.6}.chip.act{opacity:1;border-color:var(--acc2);color:var(--acc2);background:transparent}
+.cell{-webkit-touch-callout:none}
+#ned.fit .nin{touch-action:pan-y}
+.pgnav{position:absolute;left:2px;top:2px;width:54px;display:flex;align-items:center;justify-content:space-between;font-size:11px;font-weight:700;color:var(--muted)}
+.pgnav .btn{padding:3px 6px;min-width:0}
+.cmg{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}.cmg .btn{min-height:42px}
+@keyframes slL{from{transform:translateX(36px);opacity:.25}to{transform:none;opacity:1}}@keyframes slR{from{transform:translateX(-36px);opacity:.25}to{transform:none;opacity:1}}
+.nin.slideL{animation:slL .18s ease-out}.nin.slideR{animation:slR .18s ease-out}
 .kc{fill:var(--acc2);fill-opacity:.10}
 .keys td{padding:3px 8px 3px 0;vertical-align:top}.keys kbd{display:inline-block;min-width:22px;text-align:center;border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:1px 5px;font:12px ui-monospace,Menlo,monospace;background:var(--bg)}
 @media (pointer:coarse){#bKeys{display:none}}
@@ -171,6 +179,7 @@ header{flex:none}
     <span class="sp"></span>
     <button class="btn" id="bKeys" title="Tastatur-Kürzel" aria-label="Tastatur-Kürzel">⌨</button>
     <button class="btn" id="bUndo" title="Rückgängig" aria-label="Rückgängig">↶</button>
+    <button class="btn" id="bRedo" title="Wiederherstellen" aria-label="Wiederherstellen">↷</button>
     <button class="btn" id="bFold" title="Bearbeitung ein-/ausklappen" aria-label="Bearbeitung einklappen">▾</button>
   </div>
   <div class="row edtools"><div class="tools" id="tools"></div><button class="btn" id="bStick" title="Handsatz automatisch">✋</button></div>
@@ -298,7 +307,7 @@ const SUBS_SHORT={4:{1:'♩',2:'8tel',3:'Tri',4:'16tel',5:'Quint',6:'Sext',8:'32
 const ORNMARK=['','f','d','z'];
 const PARTK={2:[1,2,3,4,6],3:[1,2,4]};
 function partName(m,P,k){const pl=bu(m)/P,w=p2(pl*4/k);const n={4:'Viertel',2:'8tel',1:'16tel',0.5:'32tel',0.25:'64tel'}[w]||'';return n+(k===3?'-Tri':k===6?'-Sext':'');}
-const TOOLS=[['hit','● Schlag'],['acc','> Akzent'],['gh','( ) Ghost'],['flam','Flam'],['drag','Drag'],['buzz','z Wirbel'],['open','o Hi-Hat offen'],['long','◯ Lang'],['tie','‿ Haltebogen'],['erase','⌫ Löschen']];
+const TOOLS=[['tap','● Tippen'],['acc','> Akzent'],['gh','( ) Ghost'],['flam','Flam'],['drag','Drag'],['buzz','z Wirbel'],['open','o Hi-Hat offen'],['long','◯ Lang'],['tie','‿ Haltebogen'],['erase','⌫ Löschen']];
 
 /* ---------- Modell ---------- */
 const dk=den=>den===8?8:4;
@@ -401,7 +410,7 @@ const PRESETS={
 };
 
 /* ---------- Zustand & Speicher ---------- */
-let song,sel=0,undoStack=[],tool='hit';
+let song,sel=0,undoStack=[],redoStack=[],tool='tap';
 const opt={click:true,drums:true,countIn:true,loop:true,mode:'all',from:1,to:2,follow:true,tr:false,trStep:5,trEvery:2,trMax:160,vD:0.8,vC:0.7,focus:false};
 const LS={get(k){try{const v=localStorage.getItem(k);return v?JSON.parse(v):null}catch(e){return null}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
 function validSong(s){return s&&Array.isArray(s.measures)&&s.measures.length>0&&s.measures.every(m=>m&&m.num>0&&m.num<=32&&[2,4,8].includes(m.den)&&(Array.isArray(m.subs)||[2,3,4].includes(m.res))&&m.notes);}
@@ -423,8 +432,10 @@ const uid=()=>(window.crypto&&crypto.randomUUID?crypto.randomUUID():Date.now().t
 function sig(x){const {updatedAt,...r}=x;return JSON.stringify(r);}
 function saveLib(){LS.set('dn.songs',LIB);}
 function persist(){LS.set('dn.opt',opt);LS.set('dn.cur',{id:song.id,sel});if(song.pristine&&lastSig&&sig(song)!==lastSig)delete song.pristine;const g=sig(song);if(g!==lastSig){lastSig=g;song.updatedAt=Date.now();LIB[song.id]=JSON.parse(JSON.stringify(song));saveLib();scheduleSync();}}
-function pushUndo(){undoStack.push(JSON.stringify({song,sel}));if(undoStack.length>100)undoStack.shift();}
-function doUndo(){const s=undoStack.pop();if(!s){toast('Nichts zum Zurücknehmen');return;}const o=JSON.parse(s);song=o.song;sel=Math.min(o.sel,song.measures.length-1);renderAll();persist();}
+function pushUndo(){undoStack.push(JSON.stringify({song,sel}));if(undoStack.length>100)undoStack.shift();redoStack=[];}
+function restoreState(s){const o=JSON.parse(s);song=o.song;sel=Math.min(o.sel,song.measures.length-1);renderAll();persist();}
+function doUndo(){const s=undoStack.pop();if(!s){toast('Nichts zum Zurücknehmen');return;}redoStack.push(JSON.stringify({song,sel}));restoreState(s);}
+function doRedo(){const s=redoStack.pop();if(!s){toast('Nichts zum Wiederherstellen');return;}undoStack.push(JSON.stringify({song,sel}));restoreState(s);}
 let toastT;function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>e.classList.remove('show'),1800);}
 
 /* ---------- Notation (SVG) ---------- */
@@ -629,7 +640,7 @@ function notationRows(W,mode,ms,o){ms=ms||song.measures;o=o||{};const print=mode
 
 /* ---------- Editor ---------- */
 function renderInstSel(){}
-function renderTools(){$('#tools').innerHTML=TOOLS.map(([id,l])=>`<button class="tool${id===tool?' on':''}" data-t="${id}">${l}</button>`).join('');}
+function renderTools(){$('#tools').innerHTML=TOOLS.map(([id,l])=>`<button class="tool${id===tool?' on':''}" data-t="${id}"${id==='tap'?' title="Tippen: Schlag → Akzent → Ghost/offen → leer. Gedrückt halten: alle Optionen"':''}>${l}</button>`).join('');}
 $('#tools').addEventListener('click',e=>{const b=e.target.closest('[data-t]');if(!b)return;tool=b.dataset.t;renderTools();});
 function cellHtml(x,s,o,f){if(!s)return '';const l=x.st[s];return (l==='( )'?'(●)':l)+(o?`<sup>${ORNMARK[o]}</sup>`:'')+(f&1?'<sup>L</sup>':'')+(f&2?'<sup>‿</sup>':'');}
 function cellCls(x,s){if(!s)return '';const l=x.st[s];return l==='>'?' acc':l==='( )'?' gh':' on';}
@@ -652,37 +663,106 @@ const NE={Z:1,L:null,rw:0,tgt:null,down:false};
 function beatSelHtml(m,K,b,style,cls,p){const k=m.subs[b];
  if(p===undefined){const P=Array.isArray(k)?k.length:1;return `<select class="bsel" data-b="${b}" style="${style}">`+SUBS[K].map(q=>`<option value="${q}" ${P===1&&q===k?'selected':''}>${SUBS_SHORT[K][q]}</option>`).join('')+`<option value="h" ${P===2?'selected':''}>½ + ½</option><option value="t" ${P===3?'selected':''}>⅓ ⅓ ⅓</option></select>`;}
  return `<select class="bsel psel" data-b="${b}" data-p="${p}" style="${style}">`+PARTK[k.length].map(r=>`<option value="${r}" ${r===k[p]?'selected':''}>${partName(m,k.length,r)}</option>`).join('')+'</select>';}
+function nedPages(m,L,Zf,avail){
+ if(opt.lupe===false)return null;const MIN=26,inf=getInfo(m),nb=m.subs.length,bst=beatStarts(m);
+ if(Math.min(...L.ws.map(w=>w*Zf-2))>=MIN||nb<2)return null;
+ const chunk=k=>{const out=[];for(let b=0;b<nb;b+=k){const b1=Math.min(nb,b+k);const x0=L.bx+L.off[b]*L.f-4,x1=L.bx+(L.off[b1-1]+L.bw[b1-1])*L.f+6;
+   const Z=Math.min(3.2,avail/(x1-x0)),a=bst[b],e=b1<nb?bst[b1]:inf.length;let mc=1e9;for(let i=a;i<e;i++)mc=Math.min(mc,L.ws[i]*Z-2);out.push({b0:b,b1,a,e,x0,Z,mc});}return out;};
+ let last=null;for(let p=2;p<=nb;p++){const k=Math.ceil(nb/p);if(last&&last[0].b1===k)continue;last=chunk(k);if(last.every(w=>w.mc>=MIN))return last;}
+ return last;}
 function renderNoteEditor(){
- const m=song.measures[sel];const box=$('#ned');
+ const m=song.measures[sel];const box=$('#ned');box.classList.remove('fit');
  if(repOff(m)){const pair=m.rep===2?[sel,sel+1]:m.rep===-2?[sel-1,sel]:[sel];const srcs=pair.map(i=>srcIndex(song.measures,i)+1);
   box.innerHTML=`<div class="repinfo"><div class="big">%${pair.length===2?'²':''}</div><p>${pair.length===2?`Takte ${pair[0]+1}–${pair[1]+1} wiederholen die Takte ${srcs[0]}–${srcs[1]}`:`Takt ${sel+1} wiederholt Takt ${srcs[0]}`} (Faulenzer).</p><div class="row" style="justify-content:center"><button class="btn" id="bRepOut">Ausschreiben</button><button class="btn" id="bRepOff">Faulenzer entfernen</button></div></div>`;
   {const inf=getInfo(m),LW=58,w=Math.max(16,(Math.max(240,box.clientWidth-4)-LW)/inf.length);box.innerHTML+=`<div class="nin" style="width:${LW+w*inf.length+4}px">`+dynLaneHtml(m,inf,i=>LW+i*w,()=>w-2)+`</div>`;}
-  $('#bRepOut').onclick=()=>repWriteOut(pair);$('#bRepOff').onclick=()=>setRep(0);NE.L=null;return;}const LW=58,avail=Math.max(240,box.clientWidth-4)-LW;
+  $('#bRepOut').onclick=()=>repWriteOut(pair);$('#bRepOff').onclick=()=>setRep(0);NE.L=null;NE.win=null;box.classList.add('fit');return;}
+ const LW=58,avail=Math.max(240,box.clientWidth-4)-LW;
  const r=notationRows(avail/1.15,'edit',[m]);const row=r.svgs[0];const L=r.layout[0];
- const Z=Math.min(1.4,Math.max(1.05,avail/row.w));NE.Z=Z;NE.L=L;NE.rw=row.w;
- const W=Math.ceil(row.w*Z),inf=getInfo(m),n=inf.length;CUR.i=Math.max(0,Math.min(CUR.i,n-1));
+ const Zf=Math.min(1.4,Math.max(1.05,avail/row.w));
+ const inf=getInfo(m),n=inf.length;CUR.i=Math.max(0,Math.min(CUR.i,n-1));
+ const pages=nedPages(m,L,Zf,avail);let pg=-1;if(pages){pg=pages.findIndex(w=>CUR.i>=w.a&&CUR.i<w.e);if(pg<0)pg=0;}
+ const w=pages?pages[pg]:null;NE.win=w?{a:w.a,e:w.e,pg,n:pages.length,pages}:null;
+ const Z=w?w.Z:Zf,X0=w?w.x0:0;NE.Z=Z;NE.L=L;NE.rw=row.w;NE.X0=X0;
+ const W=Math.ceil(w?avail:row.w*Z),vis=i=>!w||(i>=w.a&&i<w.e),mx=x=>LW+(x-X0)*Z;
  const K=dk(m.den);const split=m.subs.some(Array.isArray);let bh='';
- m.subs.forEach((k,b)=>{const x=LW+(L.bx+L.off[b]*L.f)*Z,w=L.bw[b]*L.f*Z;
-  bh+=beatSelHtml(m,K,b,`left:${x+1}px;width:${w-3}px;top:2px`);
-  if(Array.isArray(k))k.forEach((q,p)=>{const pw=w/k.length;bh+=beatSelHtml(m,K,b,`left:${x+1+p*pw}px;width:${pw-3}px;top:30px`,'',p);});});
- const cx=i=>LW+(L.xs[i]-4)*Z,cw=i=>Math.max(14,L.ws[i]*Z-2);const VH=128;
- let h=`<div class="nin" style="width:${LW+W+4}px"><div id="nedBeats" style="height:${split?58:30}px">${bh}</div>`;
+ m.subs.forEach((k,b)=>{if(w&&(b<w.b0||b>=w.b1))return;const x=mx(L.bx+L.off[b]*L.f),ww=L.bw[b]*L.f*Z;
+  bh+=beatSelHtml(m,K,b,`left:${x+1}px;width:${ww-3}px;top:2px`);
+  if(Array.isArray(k))k.forEach((q,p)=>{const pw=ww/k.length;bh+=beatSelHtml(m,K,b,`left:${x+1+p*pw}px;width:${pw-3}px;top:30px`,'',p);});});
+ if(w)bh+=`<div class="pgnav"><button class="btn sm" data-pg="-1" aria-label="Vorheriger Teil">‹</button><span>${pg+1}/${pages.length}</span><button class="btn sm" data-pg="1" aria-label="Nächster Teil">›</button></div>`;
+ const cx=i=>mx(L.xs[i]-4),cw=i=>Math.max(14,L.ws[i]*Z-2);const VH=128;
+ let h=`<div class="nin${w?' win':''}" style="width:${LW+W+4}px"><div id="nedBeats" style="height:${split?58:30}px">${bh}</div>`;
  const showN=opt.edNotes!=null?opt.edNotes:(innerHeight>=760&&innerWidth>=600);
- if(showN)h+=`<svg id="nedSvg" style="margin-left:${LW}px" width="${W}" height="${Math.round(VH*Z)}" viewBox="0 0 ${row.w} ${VH}"><rect id="kcE" class="kc" x="0" y="${yP(10)-8}" width="0" height="${yP(-2)-yP(10)+16}" rx="3"/><rect id="phE" class="ph" x="0" y="${yP(10)-6}" width="0" height="${yP(-2)-yP(10)+12}" rx="3" style="display:none"/><g pointer-events="none">${row.body}</g></svg>`;
- h+=`<div class="cnts">`+inf.map((q,i)=>`<span class="cn${q.j===0?' b':''}" data-c="${i}" data-k="${i}" style="left:${cx(i)}px;width:${cw(i)}px">${countLabel(m,q)}</span>`).join('')+`</div>`;
- laneList().forEach(x=>{h+=`<div class="lane"><span class="llab">${x.name}</span>`+inf.map((q,i)=>{const sv=m.notes[x.id][i];return `<div class="cell lc${q.b%2?' alt':''}${cellCls(x,sv)}" data-id="${x.id}" data-i="${i}" data-c="${i}" data-k="${i}" style="left:${cx(i)}px;width:${cw(i)}px">${cellHtml(x,sv,m.orn[x.id][i],fxOf(m,x.id,i))}</div>`;}).join('')+`</div>`;});
- h+=`<div class="lane"><span class="llab">Sticking</span>`+inf.map((q,i)=>`<div class="cell lc stk" data-stk="${i}" data-c="${i}" data-k="${i}" style="left:${cx(i)}px;width:${cw(i)}px">${['','R','L'][m.stick[i]]}</div>`).join('')+`</div>`;
- h+=dynLaneHtml(m,inf,cx,cw);
- h+=`<div class="lane lmore"><button class="btn sm" id="bLanes">${opt.allLanes?'Nur benutzte Instrumente':'＋ Alle Instrumente'}</button> <button class="btn sm" id="bEdN">${showN?'Noten hier ausblenden':'♪ Noten hier zeigen'}</button></div></div>`;
+ if(showN&&!w)h+=`<svg id="nedSvg" style="margin-left:${LW}px" width="${W}" height="${Math.round(VH*Z)}" viewBox="0 0 ${row.w} ${VH}"><rect id="kcE" class="kc" x="0" y="${yP(10)-8}" width="0" height="${yP(-2)-yP(10)+16}" rx="3"/><rect id="phE" class="ph" x="0" y="${yP(10)-6}" width="0" height="${yP(-2)-yP(10)+12}" rx="3" style="display:none"/><g pointer-events="none">${row.body}</g></svg>`;
+ const map=fn=>inf.map((q,i)=>vis(i)?fn(q,i):'').join('');
+ h+=`<div class="cnts">`+map((q,i)=>`<span class="cn${q.j===0?' b':''}" data-c="${i}" data-k="${i}" style="left:${cx(i)}px;width:${cw(i)}px">${countLabel(m,q)}</span>`)+`</div>`;
+ laneList().forEach(x=>{h+=`<div class="lane"><span class="llab">${x.name}</span>`+map((q,i)=>{const sv=m.notes[x.id][i];return `<div class="cell lc${q.b%2?' alt':''}${cellCls(x,sv)}" data-id="${x.id}" data-i="${i}" data-c="${i}" data-k="${i}" style="left:${cx(i)}px;width:${cw(i)}px">${cellHtml(x,sv,m.orn[x.id][i],fxOf(m,x.id,i))}</div>`;})+`</div>`;});
+ if(!opt.hideStick)h+=`<div class="lane"><span class="llab">Sticking</span>`+map((q,i)=>`<div class="cell lc stk" data-stk="${i}" data-c="${i}" data-k="${i}" style="left:${cx(i)}px;width:${cw(i)}px">${['','R','L'][m.stick[i]]}</div>`)+`</div>`;
+ if(!opt.hideDyn)h+=dynLaneHtml(m,inf,cx,cw,vis);
+ const chip=(id,on,l)=>`<button class="btn sm chip${on?' act':''}" id="${id}" aria-pressed="${on}">${on?'✓ ':''}${l}</button>`;
+ h+=`<div class="lane lmore"><button class="btn sm" id="bCopyPrev" ${sel?'':'disabled'}>⧉ Takt wie vorher</button> <button class="btn sm" id="bLanes">${opt.allLanes?'Nur benutzte Instrumente':'＋ Alle Instrumente'}</button> ${chip('bTgSt',!opt.hideStick,'Sticking')} ${chip('bTgDy',!opt.hideDyn,'Dynamik')} ${chip('bLupe',opt.lupe!==false,'🔍 Lupe')} ${w?'':`<button class="btn sm" id="bEdN">${showN?'Noten hier ausblenden':'♪ Noten hier zeigen'}</button>`}</div></div>`;
  box.innerHTML=h;curCol=-1;
+ const nin=box.querySelector('.nin');if(nin&&nin.scrollWidth<=box.clientWidth+2)box.classList.add('fit');
+ if(NE.anim){nin.classList.add(NE.anim);NE.anim='';}
  $('#bLanes').onclick=()=>{opt.allLanes=!opt.allLanes;persist();renderNoteEditor();};
- $('#bEdN').onclick=()=>{opt.edNotes=!showN;persist();renderNoteEditor();};
- if(showN)$('#nedSvg').onclick=e=>{const rc=$('#nedSvg').getBoundingClientRect();const x=(e.clientX-rc.left)/Z;let b=0,bd=1e9;L.xs.forEach((xx,k)=>{const d=Math.abs(xx-x);if(d<bd){bd=d;b=k;}});setCursor(b);};
+ $('#bTgSt').onclick=()=>{opt.hideStick=!opt.hideStick;persist();renderNoteEditor();};
+ $('#bTgDy').onclick=()=>{opt.hideDyn=!opt.hideDyn;persist();renderNoteEditor();};
+ $('#bLupe').onclick=()=>{opt.lupe=opt.lupe===false;persist();renderNoteEditor();toast(opt.lupe!==false?'Lupe an: kleine Raster werden in Teilen gezeigt':'Lupe aus');};
+ $('#bCopyPrev').onclick=copyPrev;
+ if($('#bEdN'))$('#bEdN').onclick=()=>{opt.edNotes=!showN;persist();renderNoteEditor();};
+ if(showN&&!w)$('#nedSvg').onclick=e=>{const rc=$('#nedSvg').getBoundingClientRect();const x=(e.clientX-rc.left)/Z;let b=0,bd=1e9;L.xs.forEach((xx,k)=>{const d=Math.abs(xx-x);if(d<bd){bd=d;b=k;}});setCursor(b);};
  drawCursor();
 }
+/* Teil/Takt blättern (Lupe + Wischen) */
+function nedPage(d){const W=NE.win;
+ if(W){const np=W.pg+d;if(np>=0&&np<W.n){NE.anim=d>0?'slideL':'slideR';CUR.i=W.pages[np].a;renderNoteEditor();return;}}
+ const j=sel+d;if(j<0||j>=song.measures.length){toast(d>0?'Letzter Takt':'Erster Takt');return;}
+ NE.anim=d>0?'slideL':'slideR';CUR.i=d>0?0:1e6;selectMeasure(j);}
+/* Takt wie vorher */
+function copyPrev(){if(!sel)return;const ms=song.measures,cur=ms[sel],prev=srcOf(ms,sel-1)||ms[sel-1];
+ const hasNotes=INST.some(x=>cur.notes[x.id].some(Boolean))&&!repOff(cur);
+ pushUndo();const c=JSON.parse(JSON.stringify(prev));['rep','box','label','repStart','repEnd','volta','tempo','dyn'].forEach(k=>delete c[k]);
+ const k2=keepMarks(cur,c);delete k2.rep;if(cur.rep===2&&ms[sel+1]&&ms[sel+1].rep===-2)delete ms[sel+1].rep;if(cur.rep===-2&&ms[sel-1])delete ms[sel-1].rep;
+ ms[sel]=k2;fixRepeats(ms);renderAll();persist();toast(`Takt ${sel} nach Takt ${sel+1} übernommen`+(hasNotes?' (vorheriger Inhalt ersetzt – ↶ nimmt es zurück)':''));}
+/* Gedrückt halten: alle Optionen einer Zelle */
+const CM={id:'',i:0};
+const STLAB={'x':'× Normal','●':'● Normal','>':'&gt; Akzent','( )':'( ) Ghost','o':'o Offen'};
+function cellMenu(id,i){const m=song.measures[sel];const x=IMAP[id];if(!x||repOff(m))return;CM.id=id;CM.i=i;
+ const sv=m.notes[id][i],o=m.orn[id][i]||0,fx=fxOf(m,id,i),it=getInfo(m)[i],dv=dynAt(m,i);
+ const B=(k,v,l,on,dis)=>`<button class="btn${on?' pri':''}" data-a="cm" data-k="${k}" data-v="${v}"${dis?' disabled':''}>${l}</button>`;
+ openModal(`<div class="row"><h2 style="flex:1;margin:0">${x.name}</h2><button class="btn" data-a="close">Fertig</button></div>
+ <p class="muted" style="margin:2px 0 6px">Takt ${sel+1}, Zählzeit ${it.b+1}${it.j?' ('+countLabel(m,it)+')':''}</p>
+ <h4>Anschlag</h4><div class="cmg">${x.st.map((l,k)=>k?B('s',k,STLAB[l]||l,sv===k):'').join('')}</div>
+ ${x.orn||x.grace?`<h4>Verzierung</h4><div class="cmg">${B('o',0,'Keine',sv&&!o)}${B('o',1,'Flam',o===1)}${B('o',2,'Drag',o===2)}${B('o',3,'z Wirbel',o===3)}</div>`:''}
+ <h4>Dauer</h4><div class="cmg">${B('fx',1,'◯ Lang',fx&1,!sv)}${B('fx',2,'‿ Haltebogen',fx&2,!sv)}</div>
+ <h4>Sticking &amp; Dynamik</h4><div class="cmg">${B('st',1,'R',m.stick[i]===1)}${B('st',2,'L',m.stick[i]===2)}${B('dyn',0,'Dynamik'+(dv?': <i>'+esc(dynLab(dv))+'</i>':' …'))}</div>
+ <div class="row" style="margin-top:12px">${B('del',0,'⌫ Löschen',false,!sv)}</div>`);}
+$('#sheet').addEventListener('click',e=>{const b=e.target.closest('[data-a="cm"]');if(!b)return;const m=song.measures[sel],id=CM.id,i=CM.i,k=b.dataset.k,v=+b.dataset.v;
+ const a=m.notes[id],o=m.orn[id];
+ if(k==='dyn'){dynPick(i);return;}
+ pushUndo();
+ if(k==='s')a[i]=v;
+ else if(k==='o'){if(v&&!a[i])a[i]=1;if(a[i])o[i]=v;}
+ else if(k==='fx'){if(!a[i])return;if(!m.fx[id])m.fx[id]=new Array(a.length).fill(0);m.fx[id][i]^=v;}
+ else if(k==='st')m.stick[i]=m.stick[i]===v?0:v;
+ else if(k==='del'){a[i]=0;o[i]=0;if(m.fx[id])m.fx[id][i]=0;}
+ if(!a[i]){o[i]=0;if(m.fx[id])m.fx[id][i]=0;}
+ if(a[i]&&!P.on&&(k==='s'||k==='o'))preview(id,a[i],o[i]);
+ renderNotation();renderNoteEditor();persist();if(k==='del')closeModal();else cellMenu(id,i);});
+/* Gesten im Spur-Editor: Gedrückthalten = Menü, Wischen = blättern */
+$('#modal').addEventListener('click',e=>{if(NE.lpT&&Date.now()-NE.lpT<900){NE.lpT=0;e.stopPropagation();e.preventDefault();}},true);
+(()=>{const box=$('#ned');let g=null;
+ box.addEventListener('pointerdown',e=>{if(e.button>0)return;const c=e.target.closest('.lc[data-id]');g={x:e.clientX,y:e.clientY,t:Date.now(),touch:e.pointerType!=='mouse',c,lp:null};
+  if(c)g.lp=setTimeout(()=>{if(!g)return;g.fired=true;NE.supp=Date.now();NE.lpT=Date.now();try{navigator.vibrate&&navigator.vibrate(12);}catch(_){}CUR.i=+c.dataset.i;drawCursor();cellMenu(c.dataset.id,+c.dataset.i);},480);});
+ box.addEventListener('pointermove',e=>{if(!g)return;if(Math.hypot(e.clientX-g.x,e.clientY-g.y)>9&&g.lp){clearTimeout(g.lp);g.lp=null;}});
+ const end=e=>{if(!g)return;clearTimeout(g.lp);const dx=e.clientX-g.x,dy=e.clientY-g.y,dt=Date.now()-g.t;
+  if(!g.fired&&g.touch&&box.classList.contains('fit')&&Math.abs(dx)>55&&Math.abs(dx)>1.6*Math.abs(dy)&&dt<800){NE.supp=Date.now();nedPage(dx<0?1:-1);}g=null;};
+ box.addEventListener('pointerup',end);box.addEventListener('pointercancel',()=>{if(g)clearTimeout(g.lp);g=null;});
+ box.addEventListener('contextmenu',e=>{const c=e.target.closest('.lc[data-id]');if(!c)return;e.preventDefault();if(NE.supp&&Date.now()-NE.supp<1200)return;CUR.i=+c.dataset.i;drawCursor();cellMenu(c.dataset.id,+c.dataset.i);});
+ box.addEventListener('click',e=>{const p=e.target.closest('[data-pg]');if(p){nedPage(+p.dataset.pg);}},true);
+})();
 const CUR={i:0};
 const dynLab=v=>v==='<'?'cresc':v==='>'?'decr':v==='!'?'|':v;
-function dynLaneHtml(m,inf,cx,cw){return `<div class="lane"><span class="llab">Dynamik</span>`+inf.map((q,i)=>{const v=dynAt(m,i);return `<div class="cell lc dyn${v?' set':''}" data-dyn="${i}" data-c="${i}" data-k="${i}" style="left:${cx(i)}px;width:${cw(i)}px">${esc(dynLab(v))}</div>`;}).join('')+`</div>`;}
+function dynLaneHtml(m,inf,cx,cw,vis){return `<div class="lane"><span class="llab">Dynamik</span>`+inf.map((q,i)=>{if(vis&&!vis(i))return '';const v=dynAt(m,i);return `<div class="cell lc dyn${v?' set':''}" data-dyn="${i}" data-c="${i}" data-k="${i}" style="left:${cx(i)}px;width:${cw(i)}px">${esc(dynLab(v))}</div>`;}).join('')+`</div>`;}
 function dynPick(i){const m=song.measures[sel];const v=dynAt(m,i);const it=getInfo(m)[i];const b=(c,l)=>`<button class="btn dynb${v===c?' pri':''}" data-a="dynSet" data-n="${c}">${l||c}</button>`;
  openModal(`<div class="row"><h2 style="flex:1;margin:0">Dynamik</h2><button class="btn" data-a="close">Schließen</button></div>
  <p class="muted" style="margin:0 0 10px">Takt ${sel+1}, Zählzeit ${it.b+1}${it.j?' ('+countLabel(m,it)+')':''}</p>
@@ -694,17 +774,17 @@ const DYNP={i:0};
 $('#sheet').addEventListener('click',e=>{const a=e.target.closest('[data-a="dynSet"]');if(!a)return;const m=song.measures[sel];pushUndo();setDyn(m,DYNP.i,a.dataset.n);closeModal();renderNotation();renderNoteEditor();persist();});
 function laneList(){const used=new Set();[sel-1,sel,sel+1].forEach(mi=>{const mm=song.measures[mi];if(!mm)return;const s0=srcOf(song.measures,mi)||mm;INST.forEach(x=>{if(s0.notes[x.id]&&s0.notes[x.id].some(Boolean))used.add(x.id);});});
  return INST.filter(x=>opt.allLanes||['HH','SN','BD'].includes(x.id)||used.has(x.id));}
-function drawCursor(){document.querySelectorAll('#ned .kcur').forEach(e=>e.classList.remove('kcur'));document.querySelectorAll(`#ned [data-k="${CUR.i}"]`).forEach(e=>e.classList.add('kcur'));
+function drawCursor(){if(NE.win&&(CUR.i<NE.win.a||CUR.i>=NE.win.e)){renderNoteEditor();return;}document.querySelectorAll('#ned .kcur').forEach(e=>e.classList.remove('kcur'));document.querySelectorAll(`#ned [data-k="${CUR.i}"]`).forEach(e=>e.classList.add('kcur'));
  const r=$('#kcE');if(r&&NE.L){r.setAttribute('x',NE.L.xs[CUR.i]-6);r.setAttribute('width',Math.max(10,NE.L.ws[CUR.i]));}
  const c=document.querySelector(`#ned .cn[data-k="${CUR.i}"]`);if(c){const box=$('#ned'),cr=c.getBoundingClientRect(),br=box.getBoundingClientRect();if(cr.left<br.left+60||cr.right>br.right-10)box.scrollLeft+=cr.left-br.left-box.clientWidth/2;}}
 function setCursor(i){CUR.i=i;drawCursor();}
-$('#ned').addEventListener('click',e=>{const m=song.measures[sel];
+$('#ned').addEventListener('click',e=>{if(NE.supp&&Date.now()-NE.supp<700){NE.supp=0;return;}if(e.target.closest('[data-pg]'))return;const m=song.measures[sel];
  const dc=e.target.closest('[data-dyn]');if(dc){const i=+dc.dataset.dyn;CUR.i=i;drawCursor();dynPick(i);return;}
  if(repOff(m))return;
  const sc=e.target.closest('[data-stk]');
  if(sc){const i=+sc.dataset.stk;pushUndo();m.stick[i]=(m.stick[i]+1)%3;CUR.i=i;renderNotation();renderNoteEditor();persist();return;}
  const c=e.target.closest('.lc[data-id]');if(!c)return;const id=c.dataset.id,i=+c.dataset.i;CUR.i=i;
- pushUndo();if(!applyTool(m,id,i)){undoStack.pop();drawCursor();return;}
+ pushUndo();if(!applyTool(m,id,i)){undoStack.pop();drawCursor();return;}if(tool==='tap'&&!opt.tapHint){opt.tapHint=1;toast('Nochmal tippen: Akzent → Ghost → leer · Gedrückt halten: alle Optionen');}
  const sv=m.notes[id][i];if(sv&&!P.on)preview(id,sv,m.orn[id][i]);renderNotation();renderNoteEditor();persist();});
 function instAtY(y){const lock=$('#sInst').value;if(lock)return IMAP[lock];const pos=(SB-y)/4;let best=null,bd=99;INST.forEach(x=>{const d=Math.abs(x.pos-pos);if(d<bd){bd=d;best=x;}});return best;}
 function targetAt(e){if(!NE.L)return null;const svg=$('#nedSvg');const r=svg.getBoundingClientRect();const x=(e.clientX-r.left)/NE.Z,y=(e.clientY-r.top)/NE.Z;const L=NE.L;
@@ -736,6 +816,7 @@ let rafN=0;function refreshNotation(){cancelAnimationFrame(rafN);rafN=requestAni
 function applyTool(m,id,i){const x=IMAP[id],a=m.notes[id],o=m.orn[id];const L=l=>x.st.indexOf(l);
  const no=t=>{toast(t);return false;};
  switch(tool){
+  case 'tap':{const ord=[1,L('>'),L('( )'),L('o')].filter((k,j,arr)=>k>0&&arr.indexOf(k)===j);const p=ord.indexOf(a[i]);a[i]=p<0?ord[0]:p+1<ord.length?ord[p+1]:0;break;}
   case 'hit':if(a[i]){a[i]=0;o[i]=0;}else a[i]=1;break;
   case 'acc':{const k=L('>');if(k<0)return no('Kein Akzent bei '+x.name);a[i]=a[i]===k?0:k;break;}
   case 'gh':{const k=L('( )');if(k<0)return no('Ghost-Notes gibt es bei Snare und Toms');a[i]=a[i]===k?0:k;break;}
@@ -776,6 +857,7 @@ document.querySelectorAll('.ovl').forEach(o=>o.addEventListener('click',e=>{if(e
 $('#bTakt').onclick=()=>{$('#ovNr').textContent=sel+1;ovOpen('ovTakt');};
 $('#bSet').onclick=()=>ovOpen('ovSet');
 $('#bAddQ').onclick=()=>$('#bAdd').click();
+$('#bRedo').onclick=doRedo;
 $('#bFold').onclick=()=>{const f=$('#edPanel').classList.toggle('folded');$('#bFold').textContent=f?'▴':'▾';};
 $('#bPrev').onclick=()=>selectMeasure(sel-1);
 $('#bNext').onclick=()=>selectMeasure(sel+1);
@@ -1033,7 +1115,8 @@ function keyEdit(fn){const m=song.measures[sel];if(repOff(m)){toast('Faulenzer-T
 function keyTool(id,t){keyEdit(m=>{const pv=tool;tool=t;const ok=applyTool(m,id,CUR.i);tool=pv;if(ok){const sv=m.notes[id][CUR.i];if(sv&&!P.on)preview(id,sv,m.orn[id][CUR.i]);}return ok;});}
 function onKey(e){if(e.target.matches('input,textarea,select'))return;if(e.key==='Escape'){ovClose();closeModal();return;}
  if($('#modal').classList.contains('open')||ovIsOpen())return;
- if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'){e.preventDefault();doUndo();return;}
+ if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'){e.preventDefault();e.shiftKey?doRedo():doUndo();return;}
+ if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='y'){e.preventDefault();doRedo();return;}
  if(e.ctrlKey||e.metaKey||e.altKey)return;
  if(e.code==='Space'){e.preventDefault();P.on?stop():start();return;}
  const k=e.key,lk=k.toLowerCase();
@@ -1045,7 +1128,7 @@ function onKey(e){if(e.target.matches('input,textarea,select'))return;if(e.key==
  const ornTarget=()=>{const m=song.measures[sel];const h=INST.find(x=>(x.orn||x.grace)&&m.notes[x.id][CUR.i]);return h?h.id:'SN';};
  if(lk==='g'){e.preventDefault();keyTool('SN','gh');return;}
  if(lk==='f'||lk==='d'){e.preventDefault();keyTool(ornTarget(),lk==='f'?'flam':'drag');return;}
- if(lk==='z'){e.preventDefault();const m=song.measures[sel];const h=INST.find(x=>(x.orn||x.grace)&&m.notes[x.id][CUR.i]);keyTool(h?h.id:'SN','buzz');return;}
+ if(lk==='z'){e.preventDefault();const m=song.measures[sel];const h=INST.find(x=>x.orn&&m.notes[x.id][CUR.i])||INST.find(x=>x.grace&&m.notes[x.id][CUR.i]);keyTool(h?h.id:'SN','buzz');return;}
  if(k==='<'||k==='>'){e.preventDefault();const m=song.measures[sel];pushUndo();setDyn(m,CUR.i,dynAt(m,CUR.i)===k?'':k);renderNotation();renderNoteEditor();persist();return;}
  if(lk==='v'){e.preventDefault();dynPick(CUR.i);return;}
  if(lk==='l'||lk==='t'){e.preventDefault();const bit=lk==='l'?1:2;keyEdit(m=>{let any=false;INST.forEach(x=>{if(m.notes[x.id][CUR.i]){if(!m.fx[x.id])m.fx[x.id]=new Array(m.notes[x.id].length).fill(0);m.fx[x.id][CUR.i]^=bit;any=true;}});if(!any)toast('An dieser Stelle steht keine Note');return any;});return;}
@@ -1057,7 +1140,7 @@ function keysHelp(){const r=(k,t)=>`<tr><td>${k}</td><td>${t}</td></tr>`,K=t=>t.
  ${r(K('← →'),'Cursor eine Position weiter/zurück (auch über Taktgrenzen)')}${r(K('⇧')+' + '+K('← →'),'Zum nächsten/vorigen Schlag')}${r(K('↑ ↓'),'Vorheriger/nächster Takt')}${r(K('Enter'),'Eine Position weiter')}
  ${r(K('H'),'Hi-Hat')}${r(K('O'),'Hi-Hat offen')}${r(K('P'),'Hi-Hat mit dem Fuß')}${r(K('S'),'Snare')}${r(K('K')+' / '+K('B'),'Bassdrum (Kick)')}${r(K('1 2 3'),'Tom 1, Tom 2, Standtom')}${r(K('R'),'Ride')}${r(K('C'),'Crash')}
  ${r(K('⇧')+' + Buchstabe','Mit Akzent setzen')}${r(K('A'),'Akzent an der Position umschalten')}${r(K('G'),'Ghost-Note (Snare)')}${r(K('F D'),'Flam, Drag')}${r(K('Z'),'Wirbel (Snare, Toms, Becken)')}${r(K('V'),'Dynamik wählen (pp … ff)')}${r(K('<')+' '+K('>'),'Crescendo / Decrescendo')}${r(K('L'),'Lange Note umschalten')}${r(K('T'),'Haltebogen umschalten')}${r(K('X'),'Sticking R / L / leer')}
- ${r(K('Entf'),'Alles an der Position löschen')}${r(K('Leertaste'),'Abspielen / Stopp')}${r(K('Strg Z'),'Rückgängig')}${r(K('Esc'),'Fenster schließen')}</table>
+ ${r(K('Entf'),'Alles an der Position löschen')}${r(K('Leertaste'),'Abspielen / Stopp')}${r(K('Strg Z'),'Rückgängig')}${r(K('Strg Y'),'Wiederherstellen')}${r(K('Esc'),'Fenster schließen')}</table>
  <p class="muted">Ein zweiter Druck auf dieselbe Taste nimmt den Schlag wieder weg.</p>`);}
 $('#bKeys').onclick=keysHelp;
 
@@ -1093,7 +1176,7 @@ const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'
 function openModal(html){LV.open=false;$('#sheet').innerHTML=html;$('#modal').classList.add('open');}
 function closeModal(){LV.open=false;$('#modal').classList.remove('open');}
 $('#modal').addEventListener('click',e=>{if(e.target.id==='modal')closeModal();});
-function openSong(x){if(P.on)stop();undoStack=[];song=normalize(JSON.parse(JSON.stringify(x)));sel=0;lastSig=sig(song);LS.set('dn.cur',{id:song.id,sel});renderAll();closeModal();}
+function openSong(x){if(P.on)stop();undoStack=[];redoStack=[];song=normalize(JSON.parse(JSON.stringify(x)));sel=0;lastSig=sig(song);LS.set('dn.cur',{id:song.id,sel});renderAll();closeModal();}
 function loadSong(x,folder,fresh){const c=JSON.parse(JSON.stringify(x));if(fresh){c.meta=c.meta||{};applyPdfPrefs(c.meta);}c.id=uid();c.updatedAt=Date.now();c.folder=folder||'';delete c.trashed;delete c.trashRoot;openSong(c);lastSig='';persist();}
 const isSongRec=x=>x&&!x.kind&&!x.deleted&&validSong(x);
 const isFolder=x=>x&&x.kind==='folder'&&!x.deleted;
