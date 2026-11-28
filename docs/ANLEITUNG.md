@@ -28,7 +28,7 @@ Die App füllt immer genau den Bildschirm – nichts rutscht weg:
 | Bereich | Inhalt |
 |---|---|
 | **Kopfzeile** | Songname (antippen zum Umbenennen), Statuspunkt, **⇩ Export**, **📁 Songs**, **⚙** (Üben & Einstellungen) |
-| **Notenansicht** (oben) | Das ganze Stück. Scrollt in sich. Ein Tipp auf einen Takt wählt ihn aus. |
+| **Notenansicht** (oben) | Das ganze Stück. Scrollt in sich. Ein Tipp auf einen Takt wählt ihn aus. Oben rechts **− Auto +** für die Notengröße (am PC auch Strg + Mausrad). |
 | **Bearbeitung** (fest darunter) | Takt-Navigation, Werkzeuge und die Instrument-Spuren des gewählten Takts. Mit **▾** einklappen, wenn du nur lesen oder üben willst. |
 | **Transportleiste** (unten) | ▶ Abspielen/Stopp, Tempo (−, Zahl, +), Tap, Klick an/aus, Drums an/aus |
 
@@ -141,6 +141,17 @@ Unter dem Raster liegt für jedes Instrument eine eigene, große Zeile – genau
 
 **Lupe für feine Raster:** Wären die Felder zu schmal zum sicheren Treffen (z. B. 16tel oder 32tel am Handy), zeigt die Bearbeitung den Takt automatisch in Teilen, etwa Schlag 1–2 und Schlag 3–4. Links oben steht, welcher Teil gerade zu sehen ist (z. B. **‹ 1/2 ›**); die Pfeile blättern. Auf Tablet und Rechner ist meist genug Platz, dann bleibt der Takt am Stück. **✓ 🔍 Lupe** schaltet das Verhalten ab bzw. wieder an.
 
+**Mehrere Takte nebeneinander (PC, Tablet quer):** Ist der Bildschirm breit genug, zeigt die Bearbeitung zwei bis vier Takte nebeneinander. Jeder Takt hat oben seine Nummer; der gerade gewählte ist farbig umrahmt. Ein Klick in ein Feld eines anderen Takts wählt diesen Takt und setzt die Note in einem Schritt. Am Ende des Ausschnitts blättert die Ansicht automatisch weiter. Faulenzer-Takte erscheinen als **%** mit dem Knopf **Ausschreiben**. **✓ Mehrere Takte** schaltet zurück auf einen Takt.
+
+**Mit der Maus (PC):**
+
+| Aktion | Wirkung |
+|---|---|
+| Klick | wie Tippen: Schlag → Akzent → Ghost → leer |
+| Gedrückt halten und über die Spur ziehen | setzt dasselbe auf alle überstrichenen Felder – auch über Taktgrenzen. Beginnt der Zug auf einem Feld, das dabei leer wird, werden die überstrichenen Felder gelöscht. |
+| Rechtsklick | Menü mit allen Optionen des Felds |
+| Mauszeiger über einem leeren Feld | zeigt blass, was ein Klick setzen würde |
+
 **Wischen:** In den Spuren nach links wischen zeigt den nächsten Teil bzw. den nächsten Takt, nach rechts den vorherigen. So lässt sich ein ganzes Stück durchgehen, ohne die Knöpfe zu suchen.
 
 ### 2.6 Schreiben mit der Tastatur (Rechner)
@@ -170,6 +181,20 @@ Am Rechner geht es am schnellsten mit der Tastatur. Ein blauer **Cursor** markie
 | Leertaste | Abspielen / Stopp |
 | Strg/⌘ + Z | Rückgängig |
 | Strg/⌘ + Y oder ⇧ + Strg/⌘ + Z | Wiederherstellen |
+
+**Takte bearbeiten mit der Tastatur**
+
+| Taste | Wirkung |
+|---|---|
+| Tab / ⇧ + Tab | Nächster / vorheriger Takt |
+| ⇧ + ↑ ↓ oder ⇧ + Klick im Notenbild | Mehrere Takte auswählen |
+| Strg + A | Alle Takte auswählen |
+| Esc | Auswahl aufheben |
+| Strg + C / X / V | Takt(e) kopieren / ausschneiden / hinter der Auswahl einfügen |
+| Strg + D | Takt(e) duplizieren |
+| Strg + Enter | Neuen leeren Takt einfügen |
+| Strg + Entf | Takt(e) löschen |
+| Strg + Plus / Minus / 0 | Notenbild größer / kleiner / automatisch |
 
 Ein zweiter Druck auf dieselbe Taste nimmt den Schlag wieder weg. Mehrere Instrumente an einer Position (z. B. Hi-Hat + Bassdrum): einfach nacheinander H und K drücken, dann → weiter.
 
